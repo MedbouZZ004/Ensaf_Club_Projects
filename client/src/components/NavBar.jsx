@@ -29,6 +29,13 @@ const NavBar = () => {
         >
           About
         </NavLink>
+        <NavLink  to="signUp"
+        className={({ isActive }) =>
+            `px-4 py-2 rounded transition-colors duration-200 font-medium text-white hover:bg-blue-600 hover:text-white ${
+              isActive ? 'bg-blue-700 text-white' : 'text-gray-200'
+            }`}>
+          SignUp
+        </NavLink>
       </div>
     </nav>
   );
