@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const SignUp = () => {
+const SignUp = () => {
   const [showForm, setShowForm] = useState(false);
   
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex min-h-screen bg-black overflow-hidden">
       {/* Left Side - Form */}
       <AnimatePresence>
         {showForm && (
           <motion.div 
-            className="flex flex-col justify-center items-center w-1/2 p-10 z-10"
+            className="flex flex-col justify-center items-center w-full md:w-1/2 p-4 md:p-10 z-10"
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
@@ -19,69 +19,84 @@ export const SignUp = () => {
             <div className="w-full max-w-sm">
               {/* Logo */}
               <div className="flex justify-center mb-6">
-                <div className="bg-yellow-600 p-3 rounded-lg">
+                <motion.div 
+                  className="bg-yellow-600 p-3 rounded-lg"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
                   <span className="text-black font-bold text-lg">ENSAF</span>
-                </div>
+                </motion.div>
               </div>
 
-              <h2 className="text-2xl font-bold mb-2 text-yellow-500">Get Started</h2>
-              <p className="text-gray-400 mb-6">
+              <motion.h2 
+                className="text-2xl font-bold mb-2 text-yellow-500"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                Get Started
+              </motion.h2>
+              <motion.p 
+                className="text-gray-400 mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
                 Welcome to ENSAF Clubs – Let's create your account
-              </p>
+              </motion.p>
 
               <div className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-                <input
-                  type="text"
-                  placeholder="Club Name"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                />
+                {[
+                  { type: "text", placeholder: "First Name" },
+                  { type: "text", placeholder: "Last Name" },
+                  { type: "email", placeholder: "Email" },
+                  { type: "tel", placeholder: "Phone" },
+                  { type: "text", placeholder: "Club Name" },
+                  { type: "password", placeholder: "Password" },
+                ].map((input, i) => (
+                  <motion.input
+                    key={i}
+                    type={input.type}
+                    placeholder={input.placeholder}
+                    className="w-full bg-gray-900 text-gray-200 border border-yellow-800 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 + i * 0.1 }}
+                  />
+                ))}
 
-                <button
+                <motion.button
                   type="submit"
                   className="w-full bg-yellow-600 text-black font-bold p-3 rounded-md hover:bg-yellow-700 transition"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Sign up
-                </button>
+                </motion.button>
               </div>
 
-              <p className="text-center text-gray-400 mt-4">
+              <motion.p 
+                className="text-center text-gray-400 mt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.3 }}
+              >
                 Already have an account?{" "}
                 <a href="#" className="text-yellow-500 hover:underline">
                   Log in
                 </a>
-              </p>
+              </motion.p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Right Side - Banner */}
-      <div className="w-full md:w-1/2 relative overflow-hidden min-h-screen">
+      <div className={`w-full md:${showForm ? "w-1/2" : "w-full"} relative overflow-hidden min-h-screen transition-all duration-500`}>
         {/* Dark gold gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-yellow-900"></div>
         
@@ -133,7 +148,7 @@ export const SignUp = () => {
             </motion.div>
 
             <motion.h1 
-              className="text-5xl font-bold leading-tight"
+              className="text-4xl md:text-5xl font-bold leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
@@ -161,61 +176,64 @@ export const SignUp = () => {
               Join our vibrant community and discover our amazing clubs and their activities 
             </motion.p>
 
-            {/* Animated arrow pointing to form */}
-            <motion.div
-              className="flex justify-center mt-12 cursor-pointer"
-              onClick={() => setShowForm(true)}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ 
-                opacity: 1, 
-                x: 0,
-                transition: { delay: 1.5 } 
-              }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="flex flex-col items-center">
-                <motion.div
-                  animate={{
-                    y: [0, 10, 0]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "loop"
-                  }}
-                  className="text-yellow-400 font-medium mb-2"
-                >
-                  Join Us Now
-                </motion.div>
-                <motion.div
-                  animate={{
-                    y: [0, 10, 0]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "loop",
-                    delay: 0.2
-                  }}
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-12 w-12 text-yellow-500" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
+            {/* Animated arrow pointing to form - Only visible when form is hidden */}
+            {!showForm && (
+              <motion.div
+                className="flex justify-center mt-12 cursor-pointer"
+                onClick={() => setShowForm(true)}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ 
+                  opacity: 1, 
+                  x: 0,
+                  transition: { delay: 1.5 } 
+                }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="flex flex-col items-center">
+                  <motion.div
+                    animate={{
+                      y: [0, 10, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "loop"
+                    }}
+                    className="text-yellow-400 font-medium mb-2"
                   >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M14 5l7 7m0 0l-7 7m7-7H3" 
-                    />
-                  </svg>
-                </motion.div>
-              </div>
-            </motion.div>
+                    Join Us Now
+                  </motion.div>
+                  <motion.div
+                    animate={{
+                      y: [0, 10, 0],
+                      rotate: [0, 10, -10, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "loop",
+                      delay: 0.2
+                    }}
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-12 w-12 text-yellow-500" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M14 5l7 7m0 0l-7 7m7-7H3" 
+                      />
+                    </svg>
+                  </motion.div>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
 
@@ -225,3 +243,5 @@ export const SignUp = () => {
     </div>
   );
 };
+
+export default SignUp;
