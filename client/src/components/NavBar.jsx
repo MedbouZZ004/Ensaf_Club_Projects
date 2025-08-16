@@ -1,8 +1,10 @@
 import React from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { FiLogIn, FiMenu, FiX } from "react-icons/fi";
+import { FiLogIn, FiX } from "react-icons/fi";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { MdKeyboardArrowUp } from "react-icons/md";
+import { HiMiniBars3BottomRight } from "react-icons/hi2";
+
 const NavBar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -27,19 +29,17 @@ const NavBar = () => {
   return (
     <nav className="relative z-50 flex items-center justify-between px-4 sm:px-6 py-3 md:py-4">
       {/* logo */}
-      <Link to="." end className='shrink-0'>
+       <div
+        aria-hidden
+        className='pointer-events-none absolute z-0 top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/30 rounded-full blur-[130px]'
+      />
+     <Link to="." className='shrink-0'>
         <img className='w-16 sm:w-20' src="/logo.png" alt="Logo" />
       </Link>
 
       {/* desktop menu */}
       <div className='hidden md:flex items-center w-[60%] justify-between gap-6'>
-        <NavLink to="." end className={({isActive}) => `text-[#FFC58D] font-roboto text-lg ${isActive ? 'font-medium':'font-light'}`}>
-          Home
-        </NavLink>
-        <NavLink to="about" className={({isActive}) => `text-[#FFC58D] font-roboto text-lg ${isActive ? 'font-medium':'font-light'}`}>
-          About
-        </NavLink>
-        <div className='relative'>
+        <div className='relative ml-25'>
           <button
             className='text-[#FFC58D] font-roboto flex items-center gap-2 cursor-pointer text-base'
             onClick={() => setIsOpen(!isOpen)}
@@ -76,35 +76,34 @@ const NavBar = () => {
       {/* mobile toggle */}
       <button
         type='button'
-        className='md:hidden inline-flex items-center justify-center rounded-md border-1 border-orange-300/60 px-3 py-2 text-[#FFC58D] bg-neutral-800/70'
+        className='md:hidden inline-flex items-center justify-center rounded-md px-3 py-2 text-[#FFC58D]'
         onClick={() => setMobileOpen(v => !v)}
         aria-label='Toggle menu'
         aria-controls='mobile-nav'
         aria-expanded={mobileOpen}
       >
-        {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+        {mobileOpen ? <FiX size={25} /> : <HiMiniBars3BottomRight size={30} />}
       </button>
 
-      {/* mobile panel */}
       {mobileOpen && (
-        <div id='mobile-nav' className='md:hidden absolute left-0 right-0 top-full mt-2 px-4'>
-          <div className='mx-2 rounded-xl border-1 border-orange-300/40 bg-neutral-900/90 backdrop-blur-md p-4 shadow-lg shadow-orange-200/10'>
-            <div className='flex flex-col gap-3'>
-              <NavLink to='.' end className={({isActive}) => `block px-2 py-1 rounded-md text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
+        <div id='mobile-nav' className='md:hidden absolute right-2 top-full mt-2'>
+          <div className='w-56 sm:w-64 rounded-lg border-1 border-orange-300/40 bg-neutral-900/85 backdrop-blur-md p-2.5 shadow-md shadow-orange-200/10'>
+            <div className='flex flex-col gap-1.5'>
+              <NavLink to='.' end className={({isActive}) => `block px-2 py-1 rounded-md text-xs text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
                 Home
               </NavLink>
-              <NavLink to='about' className={({isActive}) => `block px-2 py-1 rounded-md text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
+              <NavLink to='about' className={({isActive}) => `block px-2 py-1 rounded-md text-xs text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
                 About
               </NavLink>
               <div className='h-px bg-orange-300/30 my-1' />
               <div className='flex flex-col gap-1'>
-                <span className='text-xs text-orange-200/80'>Language</span>
-                <div className='flex gap-2'>
+                <span className='text-[10px] text-orange-200/80'>Language</span>
+                <div className='flex gap-1.5 flex-wrap'>
                   {languages.map(lang => (
                     <button
                       key={lang.id}
                       onClick={() => setSelectedLanguage(lang)}
-                      className={`px-2 py-1 rounded-md border-1 ${selectedLanguage.id === lang.id ? 'border-orange-300/80 bg-neutral-800 text-orange-200' : 'border-orange-300/40 text-[#FFC58D]'}`}
+                      className={`px-1.5 py-0.5 rounded-md border-1 text-[10px] ${selectedLanguage.id === lang.id ? 'border-orange-300/80 bg-neutral-800 text-orange-200' : 'border-orange-300/40 text-[#FFC58D]'}`}
                     >
                       {lang.name}
                     </button>
@@ -113,9 +112,9 @@ const NavBar = () => {
               </div>
               <button 
                 onClick={()=>{ navigate('/login') }}
-                className='mt-2 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 px-4 py-2 rounded-lg shadow-orange-200 shadow-xs '
+                className='mt-1 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 px-2.5 py-1 rounded-md shadow-orange-200 shadow-xs '
               >
-                Login <FiLogIn size={18}/>
+                Login <FiLogIn size={14}/>
               </button>
             </div>
           </div>
