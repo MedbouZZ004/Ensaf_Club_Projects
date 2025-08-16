@@ -1,8 +1,15 @@
 import React from 'react'
+import HeroSection from '../components/HeroSection'
+import Ticker from '../components/Ticker'
+import Motivation from '../components/Motivation'
 
 const Home = () => {
   return (
-    <div className='text-white'>Home</div>
+    <>
+     <HeroSection />
+     <Ticker />
+     <Motivation />
+    </>
   )
 }
 
