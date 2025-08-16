@@ -4,7 +4,7 @@ import NavBar from './NavBar'
 import Footer from './Footer'
 const Layout = () => {
   return (
-    <main className='bg-neutral-900  flex-col gap-3 h-screen'>
+    <main className='bg-neutral-900  flex-col gap-3'>
         <NavBar/>
         <Outlet/>
         <Footer/>
