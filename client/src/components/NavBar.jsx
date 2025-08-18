@@ -4,6 +4,7 @@ import { FiLogIn, FiX } from "react-icons/fi";
 import { MdKeyboardArrowDown } from "react-icons/md";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { HiMiniBars3BottomRight } from "react-icons/hi2";
+import { MdOutlineTranslate } from "react-icons/md";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -27,13 +28,13 @@ const NavBar = () => {
     setIsOpen(false);
   }, [location.pathname]);
   return (
-    <nav className="relative z-50 flex items-center justify-between px-4 sm:px-6 py-3 md:py-4">
+    <nav className="relative  z-50  flex items-center justify-between px-4 sm:px-6 py-3 md:py-4">
       {/* logo */}
        <div
         aria-hidden
         className='pointer-events-none absolute z-0 top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/30 rounded-full blur-[130px]'
       />
-     <Link to="." className='shrink-0'>
+     <Link to="." className='shrink-0 hover:scale-110 duration-200 ease-in'>
         <img className='w-16 sm:w-20' src="/logo.png" alt="Logo" />
       </Link>
 
@@ -47,10 +48,10 @@ const NavBar = () => {
             aria-expanded={isOpen}
             aria-label="Select language"
           >
-            {selectedLanguage.name} {isOpen ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />}
+          <MdOutlineTranslate /> {selectedLanguage.name} {isOpen ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />}
           </button>
           {isOpen && (
-            <div className='absolute bg-neutral-800 flex flex-col top-10 right-0 border-1 border-orange-300/40 overflow-hidden rounded-xl shadow-orange-200 shadow-xs min-w-40'>
+            <div className='absolute bg-neutral-900 flex flex-col top-10 right-0 border-1 border-orange-300/50 overflow-hidden rounded-xl  min-w-20'>
               {languages.map(lang => (
                 <button 
                   onClick={()=>{ setSelectedLanguage(lang); setIsOpen(false); }}
@@ -87,17 +88,10 @@ const NavBar = () => {
 
       {mobileOpen && (
         <div id='mobile-nav' className='md:hidden absolute right-2 top-full mt-2'>
-          <div className='w-56 sm:w-64 rounded-lg border-1 border-orange-300/40 bg-neutral-900/85 backdrop-blur-md p-2.5 shadow-md shadow-orange-200/10'>
+          <div className='w-40 rounded-lg border-1 border-orange-300/40 bg-neutral-900/85 backdrop-blur-md p-2.5 shadow-md shadow-orange-200/10'>
             <div className='flex flex-col gap-1.5'>
-              <NavLink to='.' end className={({isActive}) => `block px-2 py-1 rounded-md text-xs text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
-                Home
-              </NavLink>
-              <NavLink to='about' className={({isActive}) => `block px-2 py-1 rounded-md text-xs text-[#FFC58D] font-roboto ${isActive ? 'bg-neutral-800/80 font-medium' : 'font-light'}`}>
-                About
-              </NavLink>
-              <div className='h-px bg-orange-300/30 my-1' />
               <div className='flex flex-col gap-1'>
-                <span className='text-[10px] text-orange-200/80'>Language</span>
+                <MdOutlineTranslate className='text-orange-300 mb-2' size={20} />
                 <div className='flex gap-1.5 flex-wrap'>
                   {languages.map(lang => (
                     <button
@@ -112,7 +106,7 @@ const NavBar = () => {
               </div>
               <button 
                 onClick={()=>{ navigate('/login') }}
-                className='mt-1 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 px-2.5 py-1 rounded-md shadow-orange-200 shadow-xs '
+                className='mt-1 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer  px-2.5 py-1 rounded-md'
               >
                 Login <FiLogIn size={14}/>
               </button>

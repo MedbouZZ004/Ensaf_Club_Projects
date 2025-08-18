@@ -6,3 +6,8 @@
 .font-roboto {
   font-family: 'Roboto','sans-serif';
 }
+
+/* Smooth scroll for in-page anchors */
+html:focus-within {
+  scroll-behavior: smooth;
+}
