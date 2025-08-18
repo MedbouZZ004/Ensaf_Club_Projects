@@ -6,6 +6,7 @@ import transporter from "../config/nodemailer.config.js";
 import { VERIFICATION_EMAIL_TEMPLATE, RESETING_PASSWORD_OTP } from '../utils/emailTemplates.js';
 import dotenv from 'dotenv';
 dotenv.config();
+/*** */
 
 // ---------------- SIGN UP ----------------
 export const SignUpFct = async (req, res) => {
