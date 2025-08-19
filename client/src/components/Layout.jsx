@@ -5,9 +5,9 @@ import Footer from './Footer'
 const Layout = () => {
   return (
     <main className='bg-neutral-900  flex-col gap-3'>
-        <NavBar/>
+        {window.location.pathname !== "/login" && window.location.pathname !== "/register" && <NavBar />}
         <Outlet/>
-        <Footer/>
+        {window.location.pathname !== "/login" && window.location.pathname !== "/register" && <Footer />}
     </main>
   )
 }

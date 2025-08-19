@@ -1,3 +1,11 @@
+import tgd from "/club_icons/tgd.jpg"
+import futurePioneers from "/club_icons/future pioneers.png"
+import ieee from "/club_icons/ieee.png"
+import robogenius from "/club_icons/robogenius.png" 
+import rotaract from "/club_icons/rotaract.png"
+import secOps from "/club_icons/secops.jpg"
+import space from "/club_icons/space.png"
+import teatro from "/club_icons/teatro.png"
 // providers 
 export const providers = [
     "Team Work",
@@ -27,3 +35,13 @@ export const amazingMomPictures = [
 ];
 
 
+export {
+  tgd,
+  futurePioneers,
+  ieee,
+  robogenius,
+  rotaract,
+  secOps,
+  space,
+  teatro
+}

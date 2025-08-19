@@ -7,7 +7,7 @@ import { amazingMomPictures } from '../utils';
 const Motivation = () => {
   const duration = 15;
   return (
-    <div className='min-h-screen px-10 flex flex-col gap-13 py-10 bg-[#ffe8c7]'>
+    <div className='min-h-screen px-10 flex flex-col gap-13 py-10 rounded-bl-3xl  rounded-br-3xl bg-[#ffe8c7]'>
       {/* First content  : */}
       <div className="w-full flex flex-col lg:flex-row items-start gap-8">
         <Motion.div

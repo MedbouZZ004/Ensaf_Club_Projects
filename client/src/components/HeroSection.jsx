@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LuArrowUpFromDot } from "react-icons/lu";
 import { IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { FaQrcode } from "react-icons/fa6";
@@ -12,9 +11,9 @@ const HeroSection = () => {
     '/team-work-3.jpg',
     '/team-work-4.jpg',
     '/team-work-5.jpg'
-    ]
+  ];
   const [teamIdx, setTeamIdx] = React.useState(0);
-  const [direction, setDirection] = React.useState(0); // 1 for next, -1 for prev
+  const [direction, setDirection] = React.useState(0); 
   const [paused, setPaused] = React.useState(false);
 
   const nextTeam = React.useCallback(() => {
@@ -38,7 +37,7 @@ const HeroSection = () => {
     return () => clearInterval(id);
   }, [paused, nextTeam]);
   return (
-    <section className='relative isolate overflow-hidden min-h-screen flex items-center flex-col gap-6 px-2 sm:px-4 md:px-10 py-8 md:py-10'>
+    <section id='hero' className='relative isolate overflow-hidden min-h-screen flex items-center flex-col gap-6 px-2 sm:px-4 md:px-10 py-8 md:py-10'>
       {/* spots */}
       <div
         aria-hidden
@@ -90,7 +89,7 @@ const HeroSection = () => {
             <img className='absolute w-16 xs:w-20 sm:w-24 md:w-50 -right-2 xs:-right-6 md:-right-10' src="/light.png" alt="" />
           </motion.div>
         </div>
-        {/* second content: */}
+
         <div className='w-full flex flex-col md:flex-row gap-4 justify-between items-start'>
           <motion.div
             className="relative w-full md:w-[40%] flex gap-4"
@@ -99,9 +98,9 @@ const HeroSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: 'easeIn', delay: 0.3 }}
           >
-            {/* left column: stat + qr */}
+
             <div className='flex flex-col gap-3 w-1/2 h-80'>
-              {/* stat card */}
+
               <motion.div
                 className='relative w-full h-40 rounded-xl overflow-hidden border border-orange-300/60 bg-gradient-to-br from-[#ffdbb9]/70 via-[#ffd7ad]/70 to-[#ffc690]/80 p-3 shadow-lg shadow-orange-200/10'
                 whileHover={{ y: -3, scale: 1.01 }}
@@ -134,7 +133,6 @@ const HeroSection = () => {
               </motion.div>
             </div>
 
-            {/* right brand card */}
             <motion.div
               className="relative w-1/2 h-80 bg-neutral-800/60 backdrop-blur-md rounded-xl p-4 flex flex-col items-center justify-center border border-orange-300/40 shadow-lg shadow-orange-200/10 overflow-hidden"
               whileHover={{ y: -3, scale: 1.01 }}
@@ -188,7 +186,7 @@ const HeroSection = () => {
                     <IoIosArrowDown className='w-5 h-5 md:w-6 md:h-6' />
                   </button>
                 </div>
-                {/* Animated image swap */}
+
                 <div className='absolute inset-0'>
                   <AnimatePresence mode='wait' initial={false}>
                     <motion.img
@@ -203,7 +201,7 @@ const HeroSection = () => {
                     />
                   </AnimatePresence>
                 </div>
-                {/* subtle light and caption */}
+
                 <div aria-hidden className='pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-neutral-900/40 via-transparent to-transparent' />
                   <div className='absolute z-20 border-1 border-orange-300/40 bg-black/50 p-2 rounded-lg left-3 bottom-3 sm:left-4 sm:bottom-4 max-w-[85%]'>
                     <h4 className='font-roboto font-semibold text-orange-300 text-sm sm:text-base md:text-lg tracking-wide'>Teamwork</h4>
