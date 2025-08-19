@@ -34,6 +34,21 @@ export const amazingMomPictures = [
   "/amazing moments/moment-6.jpg",
 ];
 
+export const majors = [
+  "CP1",
+  "CP2",
+  "ILIA",
+  "ISCSI",
+  "3IACN",
+  "ISEIA",
+  "DNC",
+  "ISDIA",
+  "INFO",
+  "GM",
+  "GESI",
+  "GMT",
+  "GIND"
+]
 
 export {
   tgd,
