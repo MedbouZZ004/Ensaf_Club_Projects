@@ -1,11 +1,10 @@
-import React from 'react'
 import HeroSection from '../components/HeroSection'
 import Ticker from '../components/Ticker'
 import Motivation from '../components/Motivation'
 import ClubsIcons from '../components/ClubsIcons'
 import ExistingClubs from '../components/ExistingClubs'
 import GoUp from '../components/GoUp'
-const Home = () => {
+const  Home = () => {
   return (
     <>
      <HeroSection />

@@ -5,7 +5,7 @@ export const getUserProfil = async (req,res)=>{
     const getUserId= req.user?.user_id;
 
     try {
-        const currentUser = await pool.query('SELECT user_id , full_name , major , email , isaccountverified  FROM users WHERE user_id=$1',[getUserId]);
+        const currentUser = await pool.query('SELECT user_id , full_name , major , email , isaccountverified  FROM users WHERE user_id= ?',[getUserId]);
         if(!currentUser){
             return res.status(404).json({message:'User not found'});
         } 

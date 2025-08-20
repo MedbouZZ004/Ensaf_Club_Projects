@@ -3,6 +3,12 @@ import { Router, Routes, Route } from "react-router-dom"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import Register from './pages/Register'
+import ClubDetails from "./pages/ClubDetails"
+import UserProfile from "./pages/UserProfile"
+import ProtectedRoute from "./components/ProtectedRoute"
+import ForgotPassword from "./pages/ForgotPassword"
+import ResetPassword from "./pages/ResetPassword"
+
 function App() {
 
   return (
@@ -11,6 +17,14 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />}/>
           <Route path="register" element={<Register />}/>
+          <Route path="club/:club_id" element = {<ClubDetails />}/>
+          <Route path="user-profile"  element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          } />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
       </Routes>
   )
