@@ -57,7 +57,7 @@ const Login = () => {
             </div>
 
             <div className="flex items-center  justify-between">
-              <Link to="reset-password" className="text-sm underline text-[#ffd591] hover:text-orange-200 transition" aria-label="Forgot password" title="Forgot password">
+              <Link to="/forgot-password" className="text-sm underline text-[#ffd591] hover:text-orange-200 transition" aria-label="Forgot password" title="Forgot password">
                 Forgot password?
               </Link>
             </div>

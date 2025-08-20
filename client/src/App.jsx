@@ -6,6 +6,8 @@ import Register from './pages/Register'
 import ClubDetails from "./pages/ClubDetails"
 import UserProfile from "./pages/UserProfile"
 import ProtectedRoute from "./components/ProtectedRoute"
+import ForgotPassword from "./pages/ForgotPassword"
+import ResetPassword from "./pages/ResetPassword"
 
 function App() {
 
@@ -21,6 +23,8 @@ function App() {
               <UserProfile />
             </ProtectedRoute>
           } />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
       </Routes>
   )
