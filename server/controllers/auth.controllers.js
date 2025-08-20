@@ -11,11 +11,15 @@ dotenv.config();
 export const SignUpFct = async (req, res) => {
   const { email, password, fullName, major } = req.body;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   if (!email || !password || !fullName || !major) {
     return res.status(400).json({ error: "Please provide all fields" });
   }
   if (!emailRegex.test(email)) {
     return res.status(400).json({ error: "Invalid email format" });
+  }
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({ error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
   }
 
   try {
@@ -73,7 +77,7 @@ export const LogInFct = async (req, res) => {
     return res.status(400).json({ error: "Invalid email format" });
   }
   if (!passwordRegex.test(password)) {
-    return res.status(400).json({ error: "Invalid password format" });
+    return res.status(400).json({ error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
   }
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -241,8 +245,13 @@ export const sendResetOtp = async (req, res) => {
 // ---------------- RESET PASSWORD ----------------
 export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ message: "Please enter all fields" })
+  }
+
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({ error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
   }
 
   try {

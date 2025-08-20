@@ -8,6 +8,7 @@ router.post("/logIn",LogInFct);
 router.post("/logOut",LogOutFct);
 // router.post("/send-verify-otp",protectRoute,SendverifyEmail);
 // router.post("/verify-account",protectRoute,verifyEmail); 
+
 router.post("/send-verify-otp",protectRoute,SendverifyEmail); // forgot password.
 router.post("/verify-account",protectRoute,verifyEmail); // ?
 router.post("/is-auth",protectRoute,isAuthenticated); //?
