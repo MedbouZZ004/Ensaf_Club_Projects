@@ -1,4 +1,6 @@
+import { act } from "react";
 import { tgd, space, futurePioneers, robogenius,ieee, teatro } from "./index";
+import { removeItem } from "framer-motion";
 
 export const clubs = [
     {
