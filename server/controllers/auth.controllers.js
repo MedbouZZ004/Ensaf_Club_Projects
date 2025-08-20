@@ -9,9 +9,9 @@ dotenv.config();
 
 // ---------------- SIGN UP ----------------
 export const SignUpFct = async (req, res) => {
-  const { email, password, fullname, major } = req.body;
+  const { email, password, fullName, major } = req.body;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !password || !fullname || !major) {
+  if (!email || !password || !fullName || !major) {
     return res.status(400).json({ error: "Please provide all fields" });
   }
   if (!emailRegex.test(email)) {
@@ -28,13 +28,13 @@ export const SignUpFct = async (req, res) => {
 
     const [result] = await pool.query(
       'INSERT INTO users (email, password, full_name, major) VALUES (?, ?, ?, ?)',
-      [email, hashedPassword, fullname, major]
+      [email, hashedPassword, fullName, major]
     );
 
     const newUser = {
       user_id: result.insertId,
       email,
-      full_name: fullname,
+      full_name: fullName,
       major
     };
 
@@ -50,12 +50,6 @@ export const SignUpFct = async (req, res) => {
 
     res.status(201).json({
       message: "User created successfully.",
-      user: {
-        userId: newUser.user_id,
-        email: newUser.email,
-        fullname: newUser.full_name,
-        major: newUser.major
-      },
     });
 
   } catch (err) {
@@ -105,7 +99,7 @@ export const LogInFct = async (req, res) => {
     });
   } catch (err) {
     console.error("LogIn error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

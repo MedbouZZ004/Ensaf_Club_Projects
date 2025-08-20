@@ -1,7 +1,36 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { majors } from '../utils'
+import useAuthStore from '../store/useAuthStore'
+import { useActionState } from 'react'
 const Register = () => {
+  const {register} = useAuthStore();
+  const [state, formAction, isPending] = useActionState(handleSubmit, { success: null, message: '' });  
+  async function handleSubmit(prevState, formData) {
+    const fullName = formData.get('fullName');
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const major = formData.get('major');
+    const confirmPassword = formData.get('confirmPassword');
+    
+
+    if (password !== confirmPassword) {
+      return { success: false, message: "Passwords do not match" };
+    }
+
+    const dataToSend = {
+      fullName,
+      email,
+      major,
+      password
+    };
+
+    const result = await register(dataToSend);
+    if (!result?.ok) {
+      return { success: false, message: result?.message || 'Registration failed' };
+    }
+    return { success: true, message: result.message || 'Registration successful' };
+  }
   return (
     <div className="relative h-screen items-center px-4 sm:px-8 flex ">
 
@@ -9,8 +38,14 @@ const Register = () => {
         <div className="px-6 sm:px-8 py-8">
           <h1 className="font-roboto font-bold text-3xl text-[#ffd591]">Register</h1>
           <p className="mt-1 text-neutral-300/90">Please fill in the details below to create an account.</p>
-
-          <form className="mt-6 flex flex-col items-center space-y-5 w-full" >
+          {
+            state.message && <div className={`px-4 flex justify-center items-center mt-2 text-white py-1 ${!state.success ? "bg-red-500/40 border-red-400/40" : "bg-green-500/40 border-green-400/40"} border-1`} >
+              {state.message} 
+            </div>
+          }
+          <form 
+          action={formAction}
+          className="mt-6 flex flex-col items-center space-y-5 w-full" >
             <div className='flex w-full items-center gap-4'>
               <div className='w-1/2'>
                 <label htmlFor="fullName" className="block text-sm text-orange-200/90 mb-1">
@@ -74,20 +109,22 @@ const Register = () => {
               <label htmlFor="major" className="block text-sm text-orange-200/90 mb-1">
                 Select your major
               </label>
-              <select name="major" id="major" className="w-full bg-neutral-800/60 border border-orange-300/40 text-orange-50 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60">
-                <option value="" disabled>Select your major</option>
+              <select name="major" id="major" required defaultValue="" className="w-full bg-neutral-800/60 border border-orange-300/40 text-orange-50 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60">
+                <option value="" disabled hidden>Select your major</option>
                 {majors.map((major) => (
-                  <option key={major} value={major}>
+                  <option
+                    key={major} value={major}>
                     {major}
                   </option>
                 ))}
               </select>
+              
             </div>
             <button
               type="submit"
               className="w-[100%] bg-orange-300 text-neutral-700 cursor-pointer font-medium py-2.5 rounded-lg border border-orange-300/60 shadow transition-all duration-200 hover:bg-orange-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
             >
-              Register
+              {isPending ? "Loading..." : "Register"}
             </button>
             <p className='text-sm text-center flex items-center gap-2 text-white/80'>
               Already have an account?

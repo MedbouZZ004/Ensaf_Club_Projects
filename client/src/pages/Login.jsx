@@ -1,8 +1,22 @@
-import React from 'react'
+import React, { useActionState } from 'react'
 import { Link } from 'react-router-dom'
 import ReturnButton from '../components/ReturnButton'
+import useAuthStore from '../store/useAuthStore'
+import UserCard from '../components/UserCard'
 const Login = () => {
-  
+  const { login } = useAuthStore();
+  const [state, formAction, isPending] = useActionState(handleSubmit, { success: null, message: '' });
+  async function handleSubmit(prevState, formData) {
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const dataToSend = {
+      email,
+      password
+    }
+    const result = await login(dataToSend);
+    if(!result.success) return {success:false, message:result.message}
+    return {success:true, message:result.message}
+    }
   return (
     <div className="relative h-screen items-center px-4 sm:px-8 flex ">
       <ReturnButton />
@@ -10,8 +24,10 @@ const Login = () => {
         <div className="px-6 sm:px-8 py-8">
           <h1 className="font-roboto font-bold text-3xl text-[#ffd591]">Login</h1>
           <p className="mt-1 text-neutral-300/90">Please enter your credentials to access your account.</p>
-
-          <form className="mt-6 space-y-5 w-full" >
+          {state.message &&  <div className={`px-4 flex justify-center items-center mt-2  text-white py-1 ${!state.success ? "bg-red-500/40  border-red-400/40 " : "bg-green-500/40 border-green-400/40"} border-1`} >
+            <p>{state.message}</p>
+          </div>}
+          <form action={formAction} className="mt-6 space-y-5 w-full" >
             <div>
               <label htmlFor="email" className="block text-sm text-orange-200/90 mb-1">
                 Email Address
@@ -49,7 +65,7 @@ const Login = () => {
               type="submit"
               className="w-full bg-orange-300 text-neutral-700 cursor-pointer font-medium py-2.5 rounded-lg border border-orange-300/60 shadow transition-all duration-200 hover:bg-orange-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
             >
-              Login
+              {isPending ? "Loading..." : "Login"}
             </button>
             <p className='text-sm text-center flex items-center gap-2 text-white/80'>
               You don't have an account?

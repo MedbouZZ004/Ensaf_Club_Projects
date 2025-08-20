@@ -1,5 +1,5 @@
   
-  import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,6 +12,7 @@ export const generateJwtToken = (user_id,res)=>{
         secure : process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? 'none':"strict",
         maxAge:7*24*60*1000,
+        path: "/"
     });
     return token;
 }
