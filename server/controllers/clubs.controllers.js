@@ -45,24 +45,298 @@ export const getAllClubsForHomePage = async (req, res) => {
 
 // Get club by ID
 export const getClubById = async (req, res) => {
-  const { club_id } = req.params; 
-
   try {
-    const [club] = await pool.query(
-      "SELECT club_id, name, description, image, logo, category, views, likes, creation_date FROM clubs WHERE club_id = ?",
-      [club_id]
-    );
-
-    if (club.length === 0) {
-      return res.status(404).json({ message: "Club not found." });
+    const { id } = req.params;
+    
+    // Get the base URL dynamically
+    const PORT = process.env.PORT || 5000;
+    // Automatically gets http://localhost:PORT or production host
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    
+    // Validate the ID parameter
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ message: "Invalid club ID" });
     }
-
-    return res.status(200).json(club[0]); 
-  } catch (err) {
-    console.error("Error fetching club by ID:", err.message);
-    return res.status(500).json({ message: "Internal Server Error" });
+    
+    const query = `
+      SELECT 
+        c.club_id as id, c.name, c.admin_id as admin, c.description,
+        c.instagram_link, c.linkedin_link, c.logo, 
+        c.creation_date as created_date, c.views, c.likes,
+        
+        -- Get first video as short_video
+        (SELECT cm.media_url FROM club_media cm 
+         WHERE cm.club_id = c.club_id AND cm.media_type = 'video' LIMIT 1) as short_video,
+        
+        -- Get all images as JSON array with proper null handling
+        COALESCE((
+          SELECT JSON_ARRAYAGG(cm.media_url) FROM club_media cm 
+          WHERE cm.club_id = c.club_id AND cm.media_type = 'image'
+        ), JSON_ARRAY()) as club_images,
+        
+        -- Get activities with images as JSON with proper null handling
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'id', a.activity_id, 
+            'name', a.name, 
+            'pitch', a.pitch,  
+            'main_image', a.main_image,
+            'activity_date', a.activity_date,
+            'activity_images', COALESCE((
+              SELECT JSON_ARRAYAGG(ai.images) FROM activities_images ai 
+              WHERE ai.activity_id = a.activity_id
+            ), JSON_ARRAY())
+          )) FROM activities a WHERE a.club_id = c.club_id
+        ), JSON_ARRAY()) as activities,
+        
+        -- Get board members as JSON with proper null handling
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'board_member_id', bm.board_membre_id, 
+            'fullname', bm.fullname,
+            'email', bm.email, 
+            'image', COALESCE(bm.image, ''), 
+            'role', bm.role
+          )) FROM board_membre bm WHERE bm.club_id = c.club_id
+        ), JSON_ARRAY()) as board_members,
+        
+        -- Get reviews with user details as JSON with proper null handling
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'review', r.user_id, 
+            'full_name', u.full_name,
+            'email', u.email, 
+            'text', r.text, 
+            'date', r.date
+          )) FROM reviews r JOIN users u ON r.user_id = u.user_id 
+          WHERE r.club_id = c.club_id
+        ), JSON_ARRAY()) as reviews
+        
+      FROM clubs c WHERE c.club_id = ?
+    `;
+    
+    const [rows] = await pool.execute(query, [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Club not found" });
+    }
+    
+    const club = rows[0];
+    
+    // Helper function to add base URL to image/video paths
+    const addBaseUrl = (path) => {
+      if (!path || path === '') return '';
+      // Check if it's already a full URL
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      // Remove leading slash if present to avoid double slashes
+      const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+      return `${baseUrl}/${cleanPath}`;
+    };
+    
+    // Helper function to safely parse JSON or return the value if already parsed
+    const safeJsonParse = (value) => {
+      if (value === null || value === undefined) {
+        return [];
+      }
+      if (Array.isArray(value)) {
+        return value; // Already parsed by MySQL
+      }
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (error) {
+          console.log("JSON parse error for value:", value);
+          return [];
+        }
+      }
+      return value;
+    };
+    
+    // Parse the data
+    const parsedActivities = safeJsonParse(club.activities);
+    const parsedBoardMembers = safeJsonParse(club.board_members);
+    const parsedClubImages = safeJsonParse(club.club_images);
+    
+    // Add base URL to all image and video paths
+    const processedActivities = parsedActivities.map(activity => ({
+      ...activity,
+      main_image: addBaseUrl(activity.main_image),
+      activity_images: activity.activity_images.map(img => addBaseUrl(img))
+    }));
+    
+    const processedBoardMembers = parsedBoardMembers.map(member => ({
+      ...member,
+      image: addBaseUrl(member.image)
+    }));
+    
+    const processedClubImages = parsedClubImages.map(img => addBaseUrl(img));
+    
+    const clubData = {
+      id: club.id,
+      name: club.name,
+      admin: club.admin,
+      description: club.description,
+      instagram_link: club.instagram_link,
+      linkedin_link: club.linkedin_link,
+      logo: addBaseUrl(club.logo),
+      created_date: club.created_date,
+      views: club.views,
+      likes: club.likes,
+      short_video: addBaseUrl(club.short_video),
+      club_images: processedClubImages,
+      activities: processedActivities,
+      board_members: processedBoardMembers,
+      reviews: safeJsonParse(club.reviews) // reviews don't need image processing
+    };
+    
+    return res.status(200).json(clubData);
+    
+  } catch(err) {
+    console.log("Error fetching club by ID:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+// Alternative version with dynamic base URL (same approach, cleaner structure)
+export const getClubByIdDynamic = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Get the base URL dynamically
+    const PORT = process.env.PORT || 5000;
+    // Automatically gets http://localhost:PORT or production host
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    
+    // Validate the ID parameter
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ message: "Invalid club ID" });
+    }
+    
+    const query = `
+      SELECT 
+        c.club_id as id, c.name, c.admin_id as admin, c.description,
+        c.instagram_link, c.linkedin_link, c.logo, 
+        c.creation_date as created_date, c.views, c.likes,
+        
+        (SELECT cm.media_url FROM club_media cm 
+         WHERE cm.club_id = c.club_id AND cm.media_type = 'video' LIMIT 1) as short_video,
+        
+        COALESCE((
+          SELECT JSON_ARRAYAGG(cm.media_url) FROM club_media cm 
+          WHERE cm.club_id = c.club_id AND cm.media_type = 'image'
+        ), JSON_ARRAY()) as club_images,
+        
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'id', a.activity_id, 
+            'name', a.name, 
+            'pitch', a.pitch,  
+            'main_image', a.main_image,
+            'activity_date', a.activity_date,
+            'activity_images', COALESCE((
+              SELECT JSON_ARRAYAGG(ai.images) FROM activities_images ai 
+              WHERE ai.activity_id = a.activity_id
+            ), JSON_ARRAY())
+          )) FROM activities a WHERE a.club_id = c.club_id
+        ), JSON_ARRAY()) as activities,
+        
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'board_member_id', bm.board_membre_id, 
+            'fullname', bm.fullname,
+            'email', bm.email, 
+            'image', COALESCE(bm.image, ''), 
+            'role', bm.role
+          )) FROM board_membre bm WHERE bm.club_id = c.club_id
+        ), JSON_ARRAY()) as board_members,
+        
+        COALESCE((
+          SELECT JSON_ARRAYAGG(JSON_OBJECT(
+            'review', r.user_id, 
+            'full_name', u.full_name,
+            'email', u.email, 
+            'text', r.text, 
+            'date', r.date
+          )) FROM reviews r JOIN users u ON r.user_id = u.user_id 
+          WHERE r.club_id = c.club_id
+        ), JSON_ARRAY()) as reviews
+        
+      FROM clubs c WHERE c.club_id = ?
+    `;
+    
+    const [rows] = await pool.execute(query, [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Club not found" });
+    }
+    
+    const club = rows[0];
+    
+    // Helper function to add base URL to image/video paths
+    const addBaseUrl = (path) => {
+      if (!path || path === '') return '';
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+      return `${baseUrl}/${cleanPath}`;
+    };
+    
+    // Helper function to safely parse JSON
+    const safeJsonParse = (value) => {
+      if (value === null || value === undefined) return [];
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (error) {
+          console.log("JSON parse error for value:", value);
+          return [];
+        }
+      }
+      return value;
+    };
+    
+    // Process the data with base URLs
+    const parsedActivities = safeJsonParse(club.activities);
+    const parsedBoardMembers = safeJsonParse(club.board_members);
+    const parsedClubImages = safeJsonParse(club.club_images);
+    
+    const clubData = {
+      id: club.id,
+      name: club.name,
+      admin: club.admin,
+      description: club.description,
+      instagram_link: club.instagram_link,
+      linkedin_link: club.linkedin_link,
+      logo: addBaseUrl(club.logo),
+      created_date: club.created_date,
+      views: club.views,
+      likes: club.likes,
+      short_video: addBaseUrl(club.short_video),
+      club_images: parsedClubImages.map(img => addBaseUrl(img)),
+      activities: parsedActivities.map(activity => ({
+        ...activity,
+        main_image: addBaseUrl(activity.main_image),
+        activity_images: activity.activity_images.map(img => addBaseUrl(img))
+      })),
+      board_members: parsedBoardMembers.map(member => ({
+        ...member,
+        image: addBaseUrl(member.image)
+      })),
+      reviews: safeJsonParse(club.reviews)
+    };
+    
+    return res.status(200).json(clubData);
+    
+  } catch(err) {
+    console.log("Error fetching club by ID:", err.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 
 export const likeClub = async (req, res) => {
   const { id } = req.params;  
