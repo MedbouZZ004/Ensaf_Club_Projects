@@ -199,7 +199,8 @@ export const getClubById = async (req, res) => {
   }
 };
 
-// Alternative version with dynamic base URL (same approach, cleaner structure)
+// Alternative version with dynamic base URL ( hadi khliwha hna )
+/*
 export const getClubByIdDynamic = async (req, res) => {
   try {
     const { id } = req.params;
@@ -336,7 +337,7 @@ export const getClubByIdDynamic = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+*/
 
 export const likeClub = async (req, res) => {
   const { id } = req.params;  
