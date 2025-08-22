@@ -1,5 +1,5 @@
 import express from 'express';
-import {getAllClubsForHomePage,getClubById,likeClub,addViews} from '../controllers/clubs.controllers.js';
+import {getAllClubsForHomePage,getClubById,addViews,likeClub} from '../controllers/clubs.controllers.js';
 //import upload from '../middlewares/upload.js';
 import protectRoute from '../middlewares/protectedRoute.js';
 const router = express.Router();
