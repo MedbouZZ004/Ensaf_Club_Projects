@@ -340,25 +340,32 @@ export const getClubByIdDynamic = async (req, res) => {
 */
 
 export const likeClub = async (req, res) => {
-  const { id } = req.params;  
-  const club_id = id;          
+  const club_id = req.params.id;       
+  const user_id=req.user?.user_id; // Authenticated user ID 
 
   try {
-    const [rows] = await pool.query(
-      "SELECT club_id, likes FROM clubs WHERE club_id = ?",
-      [club_id]
+   //check if user has already liked the club
+   const [existingLike] = await pool.query(
+      "SELECT * FROM club_likes WHERE club_id = ? AND user_id = ?",
+      [club_id, user_id]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Club not found." });
+    if (existingLike.length > 0) {
+      // if already liked then unlike it
+      await pool.query("DELETE FROM club_likes WHERE club_id = ? AND user_id = ?", [club_id, user_id]);
+    } else {
+      await pool.query("INSERT INTO club_likes (club_id, user_id) VALUES (?, ?)", [club_id, user_id]);
     }
-
-    await pool.query(
-      "UPDATE clubs SET likes = likes + 1 WHERE club_id = ?",
+    // Get the updated likes count
+    const [likesCount] = await pool.query(
+      "SELECT COUNT(*) AS totalLikes FROM club_likes WHERE club_id = ?",
       [club_id]
     );
 
-    return res.status(200).json({ message: "Club liked successfully!" });
+    // Reset the likes count in clubs table
+     await pool.query("UPDATE clubs SET likes = ? WHERE club_id = ?", [likesCount[0].totalLikes, club_id]);
+
+        res.json({ success: true, message:"Liked succesfulyy" });
   } catch (err) {
     console.error("Error liking club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -368,26 +375,71 @@ export const likeClub = async (req, res) => {
 //think about adding a like_tables to enable like and unlike 
 
 export const addViews = async (req,res)=>{
-  const { id } = req.params;
-  const club_id = id;
+  const club_id = req.params.id;
+  const user_id=req.user?.user_id; // Authenticated user ID
 
   try {
-    const [club] = await pool.query(
-      "SELECT club_id, likes FROM clubs WHERE club_id = ?",
-      [club_id]
-    );
-
-    if (club.length === 0) {
-      return res.status(404).json({ message: "Club not found." });
-    }
-
-    await pool.query("UPDATE clubs SET views = views + 1 WHERE club_id = ?", [
-      club_id,
-    ]);
-
-    return res.status(200).json({ message: "Club viewed successfully!" });
+   const [existingView] = await pool.query(
+            "SELECT * FROM club_views WHERE club_id = ? AND user_id = ?",
+            [club_id, user_id]
+        );
+    if (existingView.length === 0) {
+            await pool.query("INSERT INTO club_views (club_id, user_id) VALUES (?, ?)", [club_id, user_id]);
+        }
+      const [viewsCount] = await pool.query(
+            "SELECT COUNT(*) AS totalViews FROM club_views WHERE club_id = ?",
+            [club_id]
+        );
+       await pool.query("UPDATE clubs SET views = ? WHERE club_id = ?", [viewsCount[0].totalViews, club_id]);
+       res.json({ success: true, message:"View added succesfulyy" });
+    
   } catch (err) {
     console.error("Error addd views to  club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+} 
+
+export const addReview = async(req,res)=>{ 
+  // route uses /reviews/:id so read `id` from params
+  const clubID = req.params.id;
+  const userId = req.user?.user_id;
+  const {text}=req.body;
+  try { 
+
+    const [club]=await pool.query("SELECT * FROM clubs WHERE club_id = ?",[clubID]);
+    if(club.length===0){
+      return res.status(404).json({message:"Club not found."});
+    } 
+    if(!text || text.trim() ===""){
+      return res.status(400).json({message:"Review text cannot be empty."});
+    } 
+  // Format date as YYYY-MM-DD (MySQL TIMESTAMP/DATETIME will store as YYYY-MM-DD 00:00:00)
+  const formattedDate = new Date().toISOString().slice(0, 10);
+  await pool.query("INSERT INTO reviews (user_id, club_id, text, date) VALUES (?, ?, ?, ?)",[userId,clubID,text,formattedDate]);
+    return res.status(201).json({message:"Review added successfully!"});
+
+
+  }catch(err){
+    console.error("Error adding review:", err.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+export const deleteReview = async (req,res)=>{
+  // route uses /reviews/:id so read `id` from params
+  const clubID = req.params.id;
+  const userId = req.user?.user_id;
+  try { 
+    
+    const [club]=await pool.query("SELECT * FROM clubs WHERE club_id = ?",[clubID]);
+    if(club.length===0){
+      return res.status(404).json({message:"Club not found."});
+    } 
+
+    await pool.query("DELETE FROM reviews WHERE user_id = ? AND club_id = ?",[userId,clubID]);
+    return res.status(200).json({message:"Review deleted successfully!"});
+
+  } catch(err){
+    console.error("Error deleting review:", err.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
