@@ -340,25 +340,32 @@ export const getClubByIdDynamic = async (req, res) => {
 */
 
 export const likeClub = async (req, res) => {
-  const { id } = req.params;  
-  const club_id = id;          
+  const club_id = req.params.id;       
+  const user_id=req.user?.user_id; // Authenticated user ID 
 
   try {
-    const [rows] = await pool.query(
-      "SELECT club_id, likes FROM clubs WHERE club_id = ?",
-      [club_id]
+   //check if user has already liked the club
+   const [existingLike] = await pool.query(
+      "SELECT * FROM club_likes WHERE club_id = ? AND user_id = ?",
+      [club_id, user_id]
     );
 
-    if (rows.length === 0) {
-      return res.status(404).json({ message: "Club not found." });
+    if (existingLike.length > 0) {
+      // if already liked then unlike it
+      await pool.query("DELETE FROM club_likes WHERE club_id = ? AND user_id = ?", [club_id, user_id]);
+    } else {
+      await pool.query("INSERT INTO club_likes (club_id, user_id) VALUES (?, ?)", [club_id, user_id]);
     }
-
-    await pool.query(
-      "UPDATE clubs SET likes = likes + 1 WHERE club_id = ?",
+    // Get the updated likes count
+    const [likesCount] = await pool.query(
+      "SELECT COUNT(*) AS totalLikes FROM club_likes WHERE club_id = ?",
       [club_id]
     );
 
-    return res.status(200).json({ message: "Club liked successfully!" });
+    // Reset the likes count in clubs table
+     await pool.query("UPDATE clubs SET likes = ? WHERE club_id = ?", [likesCount[0].totalLikes, club_id]);
+
+        res.json({ success: true, message:"Liked succesfulyy" });
   } catch (err) {
     console.error("Error liking club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -368,24 +375,24 @@ export const likeClub = async (req, res) => {
 //think about adding a like_tables to enable like and unlike 
 
 export const addViews = async (req,res)=>{
-  const { id } = req.params;
-  const club_id = id;
+  const club_id = req.params.id;
+  const user_id=req.user?.user_id; // Authenticated user ID
 
   try {
-    const [club] = await pool.query(
-      "SELECT club_id, likes FROM clubs WHERE club_id = ?",
-      [club_id]
-    );
-
-    if (club.length === 0) {
-      return res.status(404).json({ message: "Club not found." });
-    }
-
-    await pool.query("UPDATE clubs SET views = views + 1 WHERE club_id = ?", [
-      club_id,
-    ]);
-
-    return res.status(200).json({ message: "Club viewed successfully!" });
+   const [existingView] = await pool.query(
+            "SELECT * FROM club_views WHERE club_id = ? AND user_id = ?",
+            [club_id, user_id]
+        );
+    if (existingView.length === 0) {
+            await pool.query("INSERT INTO club_views (club_id, user_id) VALUES (?, ?)", [club_id, user_id]);
+        }
+      const [viewsCount] = await pool.query(
+            "SELECT COUNT(*) AS totalViews FROM club_views WHERE club_id = ?",
+            [club_id]
+        );
+       await pool.query("UPDATE clubs SET views = ? WHERE club_id = ?", [viewsCount[0].totalViews, club_id]);
+       res.json({ success: true, message:"View added succesfulyy" });
+    
   } catch (err) {
     console.error("Error addd views to  club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
