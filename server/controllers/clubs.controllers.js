@@ -390,4 +390,49 @@ export const addViews = async (req,res)=>{
     console.error("Error addd views to  club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
-}
+} 
+
+export const addReview = async(req,res)=>{ 
+  // route uses /reviews/:id so read `id` from params
+  const clubID = req.params.id;
+  const userId = req.user?.user_id;
+  const {text}=req.body;
+  try { 
+
+    const [club]=await pool.query("SELECT * FROM clubs WHERE club_id = ?",[clubID]);
+    if(club.length===0){
+      return res.status(404).json({message:"Club not found."});
+    } 
+    if(!text || text.trim() ===""){
+      return res.status(400).json({message:"Review text cannot be empty."});
+    } 
+  // Format date as YYYY-MM-DD (MySQL TIMESTAMP/DATETIME will store as YYYY-MM-DD 00:00:00)
+  const formattedDate = new Date().toISOString().slice(0, 10);
+  await pool.query("INSERT INTO reviews (user_id, club_id, text, date) VALUES (?, ?, ?, ?)",[userId,clubID,text,formattedDate]);
+    return res.status(201).json({message:"Review added successfully!"});
+
+
+  }catch(err){
+    console.error("Error adding review:", err.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+export const deleteReview = async (req,res)=>{
+  // route uses /reviews/:id so read `id` from params
+  const clubID = req.params.id;
+  const userId = req.user?.user_id;
+  try { 
+    
+    const [club]=await pool.query("SELECT * FROM clubs WHERE club_id = ?",[clubID]);
+    if(club.length===0){
+      return res.status(404).json({message:"Club not found."});
+    } 
+
+    await pool.query("DELETE FROM reviews WHERE user_id = ? AND club_id = ?",[userId,clubID]);
+    return res.status(200).json({message:"Review deleted successfully!"});
+
+  } catch(err){
+    console.error("Error deleting review:", err.message);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
