@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { MdAttachEmail } from "react-icons/md";
 
-const ClubBoardMembers = ({ boardMembers }) => {
+const ClubBoardMembers = ({ boardMembers = [] }) => {
   const [showAll, setShowAll] = useState(false);
   const initialCount = 6;
   const displayedMembers = useMemo(() => {
@@ -10,11 +10,11 @@ const ClubBoardMembers = ({ boardMembers }) => {
   }, [boardMembers, showAll]);
 
   return (
-    <section className="px-4 py-5 md:px-8 lg:px-10 xl:px-12 bg-gradient-to-b from-neutral-900 to-neutral-950">
+    <section className="px-4 py-5 md:px-8 lg:px-10 xl:px-20">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-primary font-roboto font-bold text-3xl md:text-4xl mb-4">
-            Club Board Members
+            CLUB BOARD MEMBERS
           </h1>
           <p className="text-neutral-300  max-w-3xl mx-auto">
             Meet the dedicated team leading our club forward with passion and expertise
@@ -57,7 +57,7 @@ const ClubBoardMembers = ({ boardMembers }) => {
               type="button"
               aria-expanded={showAll}
               onClick={() => setShowAll(v => !v)}
-              className="inline-flex items-center gap-2 rounded-lg border border-orange-300/50 bg-orange-300 text-neutral-700 cursor-pointer px-4 py-2 font-medium shadow hover:bg-orange-200 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
+              className="inline-flex items-center gap-2 rounded-lg border border-orange-300/50 hover:bg-orange-300 text-neutral-700 cursor-pointer px-4 py-2 font-medium shadow bg-background-color active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
             >
               {showAll ? 'Show less' : 'Show all members'}
             </button>

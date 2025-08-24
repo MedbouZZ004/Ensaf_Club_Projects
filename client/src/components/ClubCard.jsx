@@ -11,11 +11,11 @@ const ClubCard = ({ club }) => {
             {/* Header */}
             <div className='flex w-full items-center justify-between'>
                 <div className='flex items-center gap-3'>
-                    <Link to={`/club/${club.id}`} className='relative'>
+                    <Link to={`/club/${club.club_id}`} className='relative'>
                         <img className='w-14 h-14 rounded-full ring-2 ring-orange-300/50 bg-neutral-700 object-cover' src={club.logo} alt={`${club.name} logo`} />
                     </Link>
                     <div className='flex flex-col'>
-                        <Link to={`/club/${club.id}`} className='font-roboto font-semibold text-[17px] text-white'>{club.name}</Link>
+                        <Link to={`/club/${club.club_id}`} className='font-roboto font-semibold text-[17px] text-white'>{club.name}</Link>
                         <div className='flex items-center gap-2 mt-1'>
                             <span className='px-2 py-0.5 rounded-full text-xs bg-orange-300/15 text-orange-200 border border-orange-300/30'>
                                 {primaryTag}
@@ -53,7 +53,7 @@ const ClubCard = ({ club }) => {
                 </div>
                 <button
                     type='button'
-                    onClick={() => navigate(`/club/${club.id}`)}
+                    onClick={() => navigate(`/club/${club.club_id}`)}
                     className='px-3 py-1.5 rounded-lg bg-orange-300 text-neutral-700 cursor-pointer font-medium text-sm shadow hover:bg-orange-200 active:scale-95 transition'
                 >
                     Details

@@ -9,7 +9,6 @@ const ClubImages = ({ club_images = [], speed = 40, direction = 'left', classNam
   const [cycleWidth, setCycleWidth] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
   const x = useMotionValue(0)
-
   // Measure width of one cycle
   useLayoutEffect(() => {
     if (!cycleRef.current) return
@@ -47,12 +46,11 @@ const ClubImages = ({ club_images = [], speed = 40, direction = 'left', classNam
   if (!club_images || club_images.length === 0) return null
 
   const imagesTwice = [...club_images, ...club_images]
-
   return (
     <section
       className={`relative w-full  py-10 text-white overflow-hidden ${className}`}
       aria-label="Club images ticker"
-    >
+    > 
       <div className="relative">
         <div 
           aria-hidden 
@@ -95,7 +93,7 @@ const ClubImages = ({ club_images = [], speed = 40, direction = 'left', classNam
                 key={idx}
                 className="group relative shrink-0 rounded-sm overflow-hidden bg-gradient-to-br from-neutral-800 to-neutral-900 border border-orange-300/30 backdrop-blur-sm"
                 whileHover={{ 
-                  scale: 1.02,
+                  scale: 1.05,
                   transition: { duration: 0.3 }
                 }}
               >

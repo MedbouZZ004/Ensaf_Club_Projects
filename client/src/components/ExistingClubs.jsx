@@ -1,8 +1,7 @@
 import React from 'react'
 import SearchForm from './SearchForm'
-import { clubs } from '../utils/staticData'
 import ClubCard from './ClubCard'
-const ExistingClubs = () => {
+const ExistingClubs = ({clubs}) => {
   const [query, setQuery] = React.useState("");
 
   const filteredClubs = React.useMemo(() => {

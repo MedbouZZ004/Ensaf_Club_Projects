@@ -1,5 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { MdOutlineDateRange } from "react-icons/md";
+
 const MotionDiv = motion.div
 import Titre from './Titre'
 
@@ -24,7 +26,7 @@ const ClubIntro = ({ clubName, clubDescription, club_video, createdDate }) => {
                 <Titre clubName={clubName} />
 
                 <span className="inline-flex items-center gap-2 self-start rounded-full border border-amber-200/40 bg-amber-300/15 px-3 py-1 text-sm text-amber-100 shadow-sm">
-                  <span aria-hidden>📅</span>
+                  <span aria-hidden><MdOutlineDateRange /></span>
                   <span>Created on:</span>
                   <strong className="text-amber-50">{dateStr}</strong>
                 </span>

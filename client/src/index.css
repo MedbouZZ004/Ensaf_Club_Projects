@@ -11,6 +11,18 @@
 html:focus-within {
   scroll-behavior: smooth;
 }
+.scroll_reviews {
+  /* Firefox */
+  scrollbar-width: none;
+  /* IE and old Edge */
+  -ms-overflow-style: none;
+}
+.scroll_reviews::-webkit-scrollbar{
+  /* Chrome, Safari, newer Edge */
+  width: 0;
+  height: 0;
+  display: none;
+}
 @theme{
   --color-primary:#ffcd91;
   --color-background-color:#ffe8c7;
