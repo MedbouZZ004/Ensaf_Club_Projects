@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import clubsRoutes from './routes/clubs.routes.js';
+import formRoutes from './routes/form.routes.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -28,6 +29,7 @@ server.use(
 server.use('/api/auth',authRoutes);
 server.use("/api/user",userRoutes);
 server.use("/api/clubs",clubsRoutes);
+server.use("/api/form",formRoutes);
 
 server.listen(PORT , ()=>{
     console.log(`Listen at ${PORT}`);
