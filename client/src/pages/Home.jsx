@@ -17,7 +17,6 @@ const  Home = () => {
   if(error){
     return <div className='min-h-screen flex items-center justify-center text-2xl font-semibold'>{error}</div>
   }
-  console.log(clubs)
   return (
     <>
      <HeroSection />

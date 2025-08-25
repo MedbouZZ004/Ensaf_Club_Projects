@@ -38,11 +38,7 @@ const Register = () => {
         <div className="px-6 sm:px-8 py-8">
           <h1 className="font-roboto font-bold text-3xl text-[#ffd591]">Register</h1>
           <p className="mt-1 text-neutral-300/90">Please fill in the details below to create an account.</p>
-          {
-            state.message && <div className={`px-4 flex justify-center items-center mt-2 text-white py-1 ${!state.success ? "bg-red-500/40 border-red-400/40" : "bg-green-500/40 border-green-400/40"} border-1`} >
-              {state.message} 
-            </div>
-          }
+
           <form 
           action={formAction}
           className="mt-6 flex flex-col items-center space-y-5 w-full" >

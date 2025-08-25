@@ -6,7 +6,6 @@ import ReviewForm from './ReviewForm';
 
 const ClubReviews = ({reviews = []}) => {
   const scrollRef = useRef(null)
-  
   const handleScroll = (dir) => {
     const el = scrollRef.current
     if (!el) return

@@ -7,9 +7,13 @@ export const getAllClubsForHomePage = async (req, res) => {
     const PORT = process.env.PORT || 5000;
     //Automatically gets http://localhost:PORT or production host.
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    // This  Fetch all clubs
+    // This  Fetch all clubs, include per-user liked flag when available
     const [clubs] = await pool.query(
-      "SELECT club_id, name, description, logo, views, likes FROM clubs"
+      `SELECT 
+         c.club_id, c.name, c.description, c.logo, c.views, c.likes,
+         EXISTS(SELECT 1 FROM club_likes cl WHERE cl.club_id = c.club_id AND cl.user_id = ?) AS likedByMe
+       FROM clubs c`,
+      [req.user?.user_id ?? null]
     );
 
     if (clubs.length === 0) {
@@ -31,6 +35,8 @@ export const getAllClubsForHomePage = async (req, res) => {
 
       return {
         ...club,
+        // ensure boolean for likedByMe
+        likedByMe: Boolean(club.likedByMe),
         logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}` : null,
         categories: clubCats
       };
@@ -58,11 +64,12 @@ export const getClubById = async (req, res) => {
       return res.status(400).json({ message: "Invalid club ID" });
     }
     
-    const query = `
+  const query = `
       SELECT 
         c.club_id as id, c.name, c.admin_id as admin, c.description,
         c.instagram_link, c.linkedin_link, c.logo, 
         c.creation_date as created_date, c.views, c.likes,
+    EXISTS(SELECT 1 FROM club_likes cl WHERE cl.club_id = c.club_id AND cl.user_id = ?) AS likedByMe,
         
         -- Get first video as short_video
         (SELECT cm.media_url FROM club_media cm 
@@ -115,7 +122,7 @@ export const getClubById = async (req, res) => {
       FROM clubs c WHERE c.club_id = ?
     `;
     
-    const [rows] = await pool.execute(query, [id]);
+    const [rows] = await pool.execute(query, [req.user?.user_id ?? null, id]);
     
     if (rows.length === 0) {
       return res.status(404).json({ message: "Club not found" });
@@ -184,6 +191,7 @@ export const getClubById = async (req, res) => {
       created_date: club.created_date,
       views: club.views,
       likes: club.likes,
+      likedByMe: Boolean(club.likedByMe),
       short_video: addBaseUrl(club.short_video),
       club_images: processedClubImages,
       activities: processedActivities,
@@ -363,9 +371,9 @@ export const likeClub = async (req, res) => {
     );
 
     // Reset the likes count in clubs table
-     await pool.query("UPDATE clubs SET likes = ? WHERE club_id = ?", [likesCount[0].totalLikes, club_id]);
+    await pool.query("UPDATE clubs SET likes = ? WHERE club_id = ?", [likesCount[0].totalLikes, club_id]);
 
-        res.json({ success: true, message:"Liked succesfulyy" });
+    res.json({ success: true, message:"Liked successfully" });
   } catch (err) {
     console.error("Error liking club:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -377,7 +385,6 @@ export const likeClub = async (req, res) => {
 export const addViews = async (req,res)=>{
   const club_id = req.params.id;
   const user_id=req.user?.user_id; // Authenticated user ID
-
   try {
    const [existingView] = await pool.query(
             "SELECT * FROM club_views WHERE club_id = ? AND user_id = ?",

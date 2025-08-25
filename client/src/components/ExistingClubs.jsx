@@ -11,7 +11,7 @@ const ExistingClubs = ({clubs}) => {
       c.name?.toLowerCase().includes(q) ||
       c.categories?.some(cat => cat.toLowerCase().includes(q))
     );
-  }, [query]);
+  }, [query, clubs]);
   
   return (
     <div className='min-h-screen  flex-col gap-4 text-white relative px-10 py-4 flex items-center'>
@@ -19,11 +19,9 @@ const ExistingClubs = ({clubs}) => {
       <p className='text-center text-neutral-400 font-roboto'>Find your perfect club match, you can search by name OR category</p>
       <SearchForm  setQuery={setQuery} />
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-[1200px] mt-8'>
-        {
-          filteredClubs.map((club, index) =>
-            <ClubCard key={index} club={club} />
-          )
-        }
+        {filteredClubs.map((club) => (
+          <ClubCard key={club.club_id} club={club} />
+        ))}
       </div>
 
     </div>

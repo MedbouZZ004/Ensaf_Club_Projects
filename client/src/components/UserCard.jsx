@@ -36,7 +36,7 @@ const UserCard = ({user, setOpenUserMenu}) => {
       transition={transition}
       role="menu"
       aria-label="User menu"
-      className='absolute top-20 right-4 z-[100] w-64 rounded-xl border border-orange-300/30 bg-neutral-900/95 backdrop-blur-md text-white shadow-lg shadow-orange-200/10'
+      className='absolute top-20 right-4 z-[100] w-55 rounded-xl border border-orange-300/30 bg-neutral-900/95 backdrop-blur-md text-white shadow-lg shadow-orange-200/10'
     >
       {/* Header */}
       <div className='flex items-center gap-3 px-4 py-3 border-b border-orange-300/20'>
@@ -53,15 +53,8 @@ const UserCard = ({user, setOpenUserMenu}) => {
 
       {/* Actions */}
       <div className='py-'>
-        <Link
-          to={'/user-profile'}
-          onClick={() => setOpenUserMenu(false)}
-          role='menuitem'
-          className='flex items-center gap-3 px-4 py-2 text-sm text-orange-50 hover:bg-white/5 focus:bg-white/10 focus:outline-none transition-colors'
-        >
-          <FaUser className='text-orange-200' />
-          Profile
-        </Link>
+       
+      
         <button
           type='button'
           onClick={()=>{
