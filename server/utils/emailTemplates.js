@@ -56,3 +56,48 @@
 </body>
 </html>
 `;
+
+
+export const USER_MESSAGE_TO_ADMIN = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Message From User</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 650px; margin: 0 auto; padding: 20px; background-color: #f5f6fa;">
+  <!-- Header -->
+  <div style="background: linear-gradient(to right, #0078d7, #005bb5); padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">📩 New Message Received</h1>
+    <p style="color: #e4e4e4; margin: 5px 0; font-size: 14px;">A user has just sent you a message through the contact form.</p>
+  </div>
+
+  <!-- Body -->
+  <div style="background-color: #ffffff; padding: 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+    <p style="font-size: 16px; color: #555;">Hello Admin,</p>
+    <p style="font-size: 15px; color: #444;">You have received a new message from <strong>{userName}</strong> via the contact form.</p>
+
+    <!-- User Details -->
+    <div style="background-color: #f1faff; padding: 15px; border-left: 4px solid #0078d7; border-radius: 5px; margin: 20px 0;">
+      <p style="margin: 5px 0;"><strong>👤 Name:</strong> {userName}</p>
+      <p style="margin: 5px 0;"><strong>📧 Email:</strong> {userEmail}</p>
+    </div>
+
+    <!-- Message Content -->
+    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+      <p style="margin: 0; font-size: 14px; line-height: 1.7; color: #333;"><strong>📝 Message:</strong></p>
+      <p style="white-space: pre-line; margin: 8px 0 0; color: #555; font-size: 15px;">{userMessage}</p>
+    </div>
+
+    <p style="margin-top: 25px; color: #555; font-size: 14px;">Please respond to this user as soon as possible.</p>
+    <p style="margin: 10px 0 0; color: #333; font-weight: bold;">Your App Team</p>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align: center; margin-top: 15px; color: #888; font-size: 12px;">
+    <p>This is an automated notification. Please do not reply directly to this email.</p>
+  </div>
+</body>
+</html>
+`;
