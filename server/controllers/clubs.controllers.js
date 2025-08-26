@@ -464,50 +464,98 @@ export const deleteReview = async (req,res)=>{
 
 // send a message to clubs admin: 
 export const submitForm = async (req, res) => {
-    const { subject, text, admin_id } = req.body;
-    const { full_name, email } = req?.user;
-    const userInfo = {
-      full_name,
-      email
-    } // Assuming req.user contains authenticated user info
-    try {
-        // Get admin email
-        const [adminInfo] = await pool.query(
-            "SELECT email FROM admins WHERE admin_id = ?",
-            [admin_id]
-        );
-        if (adminInfo.length === 0) {
-            return res.status(404).json({ message: "Admin not found" });
-        }
+  const { subject, text, admin_id } = req.body;
 
-  const adminEmail = adminInfo[0].email;
-  console.log('admin email:', adminEmail)
-  console.log("user data ", userInfo)
-        // Replace template placeholders dynamically
-        const emailContent = USER_MESSAGE_TO_ADMIN
-            .replace(/{userName}/g, userInfo.full_name)         
-            .replace(/{userEmail}/g, userInfo.email)             
-            .replace(/{userMessage}/g, text);             
+  // Check authentication
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Authentication required' });
+  }
 
-        const mailOptions = {
-            from: userInfo.email, 
-            to: adminEmail,            
-            subject: subject || "New Contact Form Message",
-            html: emailContent    
-        };
+  const { full_name, email } = user || {};
+  const userInfo = { full_name, email };
 
-        await transporter.sendMail(mailOptions);
-
-        return res.status(200).json({ 
-          success:true,
-          message: "Form submitted successfully"
-        });
-
-    } catch (err) {
-        console.error("Error sending email:", err);
-        return res.status(500).json({ 
-          success:false,
-          message: "Internal server error" 
-        });
+  try {
+    // Validate required fields
+    if (!admin_id || !text || !subject) {
+      return res.status(400).json({ success: false, message: 'admin_id, subject and text are required' });
     }
+
+    // Get admin email from DB
+    const [adminInfo] = await pool.query(
+      "SELECT email FROM admins WHERE admin_id = ?",
+      [admin_id]
+    );
+
+    if (adminInfo.length === 0) {
+      return res.status(404).json({ success: false, message: "Admin not found" });
+    }
+
+    const adminEmail = adminInfo[0].email;
+    console.log("Admin email:", adminEmail);
+    const emailContent = USER_MESSAGE_TO_ADMIN
+      .replace(/{userName}/g, userInfo.full_name)
+      .replace(/{userEmail}/g, userInfo.email)
+      .replace(/{userMessage}/g, text);
+
+    const smtpFrom = process.env.SENDER_EMAIL;
+    if (!smtpFrom) {
+      return res.status(500).json({
+        success: false,
+        message: 'Missing SENDER_EMAIL in environment variables'
+      });
+    }
+
+    const mailOptions = {
+  
+      from: `"${userInfo.full_name} <${userInfo.email}> via ENSaf Club" <${smtpFrom}>`,
+      replyTo: `${userInfo.full_name} <${userInfo.email}>`,
+
+      // Destination → Admin
+      to: adminEmail,
+
+      // Subject
+      subject: subject || `📩 New Message From ${userInfo.full_name}`,
+
+      // HTML email template
+      html: emailContent,
+
+      // Optional headers → improves inbox display
+      headers: {
+        'X-Sender': userInfo.email,
+        'X-Reply-To': userInfo.email,
+        'X-Mailer': 'ensaf-club-app'
+      }
+    };
+
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log("Email sent ✅");
+    console.log("Message ID:", info.messageId);
+    console.log("Accepted:", info.accepted);
+    console.log("Rejected:", info.rejected);
+
+    // If Brevo rejected the email
+    if (info.rejected.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Brevo rejected the email",
+        rejected: info.rejected
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Form submitted successfully",
+      info
+    });
+
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
 };
