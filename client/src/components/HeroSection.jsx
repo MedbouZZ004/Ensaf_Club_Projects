@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { FaQrcode } from "react-icons/fa6";
-import { IoMdArrowDroprightCircle } from "react-icons/io";
+import { IoMdArrowDropdownCircle } from "react-icons/io";
 
 const HeroSection = () => {
   const teamWorkImages = [
@@ -79,7 +79,7 @@ const HeroSection = () => {
               Your Search
               <span className='font-medium'> Easier</span>
               <a href='#search' onClick={handleScrollToSearch} className='text-neutral-900/90 ml-3 hover:text-neutral-800/80 cursor-pointer duration-200 '>
-                <IoMdArrowDroprightCircle className='inline-block' />
+                <IoMdArrowDropdownCircle className='inline-block' />
               </a>
             </h3>
             <img className='absolute w-20 xs:w-28 sm:w-32 md:w-50 -top-4 xs:-top-8 md:-top-16 rotate-10 -right-2 xs:-right-6 md:-right-5' src="/search.png" alt="" />

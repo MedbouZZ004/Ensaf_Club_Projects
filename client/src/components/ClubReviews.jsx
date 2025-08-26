@@ -46,15 +46,6 @@ const ClubReviews = ({reviews = [], club_id}) => {
                 text={text}
                 date={date}
               />
-            className='scroll_reviews flex gap-3 bg-amber-100 py-3 items-center overflow-x-auto scroll-smooth'
-          >
-            {reviews.map(({full_name, email, text, date}) => (
-                <ReviewCard 
-                  fullName={full_name}
-                  email={email}
-                  text={text}
-                  date={date}
-                />
             ))}
           </div>
         </div>

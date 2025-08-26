@@ -194,8 +194,6 @@ const useClubsStore = create((set) => ({
         console.error("Error occurred while sending message:", err);
         return {success:false, error:'Error occurred while sending message'};
     }
-
-
   }
 }))
 

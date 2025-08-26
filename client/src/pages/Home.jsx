@@ -17,10 +17,6 @@ const  Home = () => {
     return <Loader />
   }
   if(error) return <Error error={error} />
-
-  if(error){
-    return <div className='min-h-screen flex items-center justify-center text-2xl font-semibold'>{error}</div>
-  }
   return (
     <>
      <HeroSection />

@@ -12,7 +12,6 @@ import Views from '../components/Views';
 import GoUp from '../components/GoUp';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
-
 const ClubDetails = () => {
   const {club_id} = useParams();
   const {getClubById, club, loading, error} = useClubsStore();
@@ -62,8 +61,6 @@ const ClubDetails = () => {
        admin_id={club?.admin}
       />
       <div className='relative left-300 mb-5'>
-
-      <div className='relative left-310 mb-5'>
         <Views views={club?.views} />
       </div>
       <GoUp />

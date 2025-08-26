@@ -4,7 +4,6 @@ import Home from "./pages/Home"
 import Login from "./pages/Login"
 import Register from './pages/Register'
 import ClubDetails from "./pages/ClubDetails"
-import ProtectedRoute from "./components/ProtectedRoute"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
 import PageNotFound from "./pages/PageNotFound"
