@@ -423,7 +423,16 @@ export const addReview = async(req,res)=>{
   // Format date as YYYY-MM-DD (MySQL TIMESTAMP/DATETIME will store as YYYY-MM-DD 00:00:00)
   const formattedDate = new Date().toISOString().slice(0, 10);
   await pool.query("INSERT INTO reviews (user_id, club_id, text, date) VALUES (?, ?, ?, ?)",[userId,clubID,text,formattedDate]);
-    return res.status(201).json({message:"Review added successfully!"});
+    // Send back the newly created review with user info to update UI immediately
+    return res.status(201).json({
+      message:"Review added successfully!",
+      review: {
+        full_name: req.user?.full_name,
+        email: req.user?.email,
+        text,
+        date: formattedDate
+      }
+    });
 
 
   }catch(err){

@@ -124,6 +124,48 @@ const useClubsStore = create((set) => ({
         }catch(err){
             console.error(err);
         }
+  },
+  addReview: async (club_id, reviewText)=>{
+    const user = localStorage.getItem('user');
+    if(!user) return toast.error('You must be logged in to submit a review.');
+    try{
+       set({error:null})
+       const res = await fetch(`/api/clubs/reviews/${club_id}`, 
+        {
+            method:'POST',
+            headers:{
+                'content-type':'application/json'
+            },
+            credentials:'include',
+            body:JSON.stringify({text:reviewText})
+        }
+       )
+       if(!res.ok){
+        toast.error("Error occured while submitting the review")
+        return {success:false, error:'error occured while subimitting the review'}
+       }
+
+             const data = await res.json();
+             const review = data?.review;
+             toast.success("Review submitted successfully");
+             set((state)=>{
+                 const existing = state.club?.reviews || [];
+                 return {
+                     loading:false,
+                     club: {
+                         ...state.club,
+                         reviews: review ? [...existing, review] : existing
+                     }
+                 };
+             })
+             return {success:true, error:null}
+    }catch(err){
+        console.error(err)
+        toast.error('Error occured white submitting the review...')
+        return {success:false, error:'Error occurred while submitting the review '}
+    }
+    
+
   }
 }))
 

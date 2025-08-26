@@ -9,6 +9,8 @@ import ClubReviews from '../components/ClubReviews';
 import ClubContact from '../components/ClubContact';
 import useClubsStore from '../store/useClubsStore';
 import Views from '../components/Views';
+import GoUp from '../components/GoUp';
+
 const ClubDetails = () => {
   const {club_id} = useParams();
   const {getClubById, club, loading, error} = useClubsStore();
@@ -51,6 +53,7 @@ const ClubDetails = () => {
       
       
       <ClubReviews
+        club_id={club?.club_id}
         reviews={club?.reviews}
       />
 
@@ -59,6 +62,7 @@ const ClubDetails = () => {
       <div className='relative left-310 mb-5'>
         <Views views={club?.views} />
       </div>
+      <GoUp />
     </main>
   )
 }

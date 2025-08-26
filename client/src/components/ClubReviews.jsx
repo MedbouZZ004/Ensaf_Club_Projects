@@ -3,8 +3,7 @@ import { IoIosAdd } from "react-icons/io";
 import ReviewCard from './ReviewCard';
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
 import ReviewForm from './ReviewForm';
-
-const ClubReviews = ({reviews = []}) => {
+const ClubReviews = ({reviews = [], club_id}) => {
   const scrollRef = useRef(null)
   const handleScroll = (dir) => {
     const el = scrollRef.current
@@ -14,8 +13,8 @@ const ClubReviews = ({reviews = []}) => {
   }
   const [openReviewForm, setOpenReviewForm] = useState(false);
   return (
-    <div className='py-10 mt-10 px-10 relative'>
-      {openReviewForm && <ReviewForm setOpenReviewForm={setOpenReviewForm} />}
+    <div className='py-10  mt-10 px-10 relative'>
+      {openReviewForm && <ReviewForm setOpenReviewForm={setOpenReviewForm} club_id={club_id} />}
       <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 w-[50vw] max-w-[340px] h-[50vw] max-h-[340px] rounded-full bg-orange-200/20 blur-[140px]" />
       <h2 className='text-primary font-roboto  text-4xl font-bold mb-4'>CLUB TESTIMONIALS</h2>
       <div className='w-full flex justify-end'>
@@ -37,17 +36,15 @@ const ClubReviews = ({reviews = []}) => {
         <div className='flex-1 scroll_reviews overflow-hidden'>
           <div
             ref={scrollRef}
-            className='scroll_reviews flex gap-3 items-stretch overflow-x-auto scroll-smooth pr-1'
+            className='scroll_reviews flex gap-3 bg-amber-100 py-3 items-center overflow-x-auto scroll-smooth'
           >
             {reviews.map(({full_name, email, text, date}) => (
-              <div key={email} className='py-3 min-w-[180px] sm:min-w-[260px] max-w-full'>
                 <ReviewCard 
                   fullName={full_name}
                   email={email}
                   text={text}
                   date={date}
                 />
-              </div>
             ))}
           </div>
         </div>

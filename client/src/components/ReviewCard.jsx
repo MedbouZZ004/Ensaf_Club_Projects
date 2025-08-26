@@ -37,9 +37,9 @@ const ReviewCard = ({ fullName, email, text, date }) => {
   const bgColor = colorMap[firstNameLetter] || 'bg-primary';
 
   return (
-    <div className='p-5 border-neutral-200 h-50 rounded-xl border-2  shadow-md shadow-black/20 bg-background-color transition-all duration-300 hover:-translate-y-1'>
+    <div className='p-4 h-60 w-100 border-neutral-200  rounded-xl border-2  shadow-md shadow-black/20 bg-background-color transition-all duration-300 hover:-translate-y-1'>
       {/* Header with avatar and info */}
-      <div className='flex gap-4 items-start mb-4'>
+      <div className='flex  gap-4 '>
         <div className={`flex-shrink-0 shadow-xs shadow-gray-400 text-white w-12 h-12 rounded-full ${bgColor} flex items-center justify-center  font-bold text-lg`}>
           {firstNameLetter}
         </div>
@@ -65,7 +65,11 @@ const ReviewCard = ({ fullName, email, text, date }) => {
       <div className='relative rounded-md flex items-center justify-center'>
         <p className='text-neutral-900 flex gap-2 font-medium font-roboto text-base items-center leading-relaxed'>
           <WiStars className='text-4xl text-amber-700' />
-          <span className='flex-1'>{text}</span>
+          <span className='flex-1'>{text.slice(0, 60)}
+            {text.length > 60 && 
+            <button 
+            onClick={() => alert(text)}
+            className='text-amber-700 curosr-pointer hover:underline duration-150'>...read more</button>}</span>
           <WiStars className='text-4xl text-amber-700' />
         </p>
       </div>
