@@ -2,6 +2,7 @@ import React from 'react';
 import { WiStars } from "react-icons/wi";
 
 const ReviewCard = ({ fullName, email, text, date }) => {
+  const [open, setOpen] = React.useState(false);
   const firstNameLetter = fullName.charAt(0).toUpperCase();
   
   // Generate a consistent color based on the first letter
@@ -37,6 +38,14 @@ const ReviewCard = ({ fullName, email, text, date }) => {
   const bgColor = colorMap[firstNameLetter] || 'bg-primary';
 
   return (
+    <div
+      className='
+        p-4 rounded-xl border-2 border-neutral-200 shadow-md shadow-black/20 bg-background-color
+        transition-transform duration-300 hover:-translate-y-1 snap-start
+        h-64 w-[280px] sm:w-[320px] md:w-[360px] flex-shrink-0
+      '
+    >
+
     <div className='p-4 h-60 w-100 border-neutral-200  rounded-xl border-2  shadow-md shadow-black/20 bg-background-color transition-all duration-300 hover:-translate-y-1'>
       {/* Header with avatar and info */}
       <div className='flex  gap-4 '>
@@ -65,6 +74,18 @@ const ReviewCard = ({ fullName, email, text, date }) => {
       <div className='relative rounded-md flex items-center justify-center'>
         <p className='text-neutral-900 flex gap-2 font-medium font-roboto text-base items-center leading-relaxed'>
           <WiStars className='text-4xl text-amber-700' />
+          <span className='flex-1 line-clamp-4 break-words'>
+            {text}
+          </span>
+          {text?.length > 140 && (
+            <button
+              type='button'
+              onClick={() => setOpen(true)}
+              className='ml-2 text-amber-700 hover:underline cursor-pointer text-sm'
+            >
+              … read more
+            </button>
+          )}
           <span className='flex-1'>{text.slice(0, 60)}
             {text.length > 60 && 
             <button 
@@ -73,6 +94,46 @@ const ReviewCard = ({ fullName, email, text, date }) => {
           <WiStars className='text-4xl text-amber-700' />
         </p>
       </div>
+      {open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className='fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4'
+          onClick={() => setOpen(false)}
+        >
+          <div
+            className='max-w-xl w-full rounded-xl bg-background-color border-2 border-neutral-200 shadow-xl shadow-black/30 p-5'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='flex items-start gap-3 mb-3'>
+              <div className={`flex-shrink-0 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold ${bgColor}`}>
+                {firstNameLetter}
+              </div>
+              <div className='min-w-0'>
+                <h3 className='text-neutral-900 font-roboto font-semibold text-base truncate'>{fullName}</h3>
+                <p className='text-neutral-600 font-roboto text-sm truncate'>{email}</p>
+                <p className='text-neutral-700 font-roboto text-xs mt-1'>
+                  {date?.split(' ')[0]}
+                </p>
+              </div>
+            </div>
+            <div className='mt-2'>
+              <p className='whitespace-pre-line break-words text-neutral-900 font-roboto'>
+                {text}
+              </p>
+            </div>
+            <div className='mt-4 flex justify-end'>
+              <button
+                type='button'
+                onClick={() => setOpen(false)}
+                className='px-3 py-1.5 rounded-lg bg-orange-300 text-white hover:bg-orange-300/90 transition'
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
     </div>
   );

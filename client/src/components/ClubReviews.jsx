@@ -36,6 +36,16 @@ const ClubReviews = ({reviews = [], club_id}) => {
         <div className='flex-1 scroll_reviews overflow-hidden'>
           <div
             ref={scrollRef}
+            className='scroll_reviews flex gap-3 py-3 items-stretch overflow-x-auto scroll-smooth snap-x snap-mandatory'
+          >
+            {reviews.map(({full_name, email, text, date}, idx) => (
+              <ReviewCard
+                key={`${email || 'rev'}-${date || idx}-${idx}`}
+                fullName={full_name}
+                email={email}
+                text={text}
+                date={date}
+              />
             className='scroll_reviews flex gap-3 bg-amber-100 py-3 items-center overflow-x-auto scroll-smooth'
           >
             {reviews.map(({full_name, email, text, date}) => (

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { IoIosArrowUp } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { FaQrcode } from "react-icons/fa6";
+import { IoMdArrowDroprightCircle } from "react-icons/io";
 
 const HeroSection = () => {
   const teamWorkImages = [
@@ -36,6 +37,14 @@ const HeroSection = () => {
     }, 3500);
     return () => clearInterval(id);
   }, [paused, nextTeam]);
+
+  const handleScrollToSearch = (e) => {
+    e.preventDefault();
+    const el = document.getElementById('search');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
   return (
     <section id='hero' className='relative isolate overflow-hidden min-h-screen flex items-center flex-col gap-6 px-2 sm:px-4 md:px-10 py-8 md:py-10'>
       {/* spots */}
@@ -69,6 +78,9 @@ const HeroSection = () => {
               Make-<br />
               Your Search
               <span className='font-medium'> Easier</span>
+              <a href='#search' onClick={handleScrollToSearch} className='text-neutral-900/90 ml-3 hover:text-neutral-800/80 cursor-pointer duration-200 '>
+                <IoMdArrowDroprightCircle className='inline-block' />
+              </a>
             </h3>
             <img className='absolute w-20 xs:w-28 sm:w-32 md:w-50 -top-4 xs:-top-8 md:-top-16 rotate-10 -right-2 xs:-right-6 md:-right-5' src="/search.png" alt="" />
           </motion.div>

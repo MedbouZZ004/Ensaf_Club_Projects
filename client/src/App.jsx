@@ -7,8 +7,8 @@ import ClubDetails from "./pages/ClubDetails"
 import ProtectedRoute from "./components/ProtectedRoute"
 import ForgotPassword from "./pages/ForgotPassword"
 import ResetPassword from "./pages/ResetPassword"
+import PageNotFound from "./pages/PageNotFound"
 function App() {
-
   return (
       <Routes>
         <Route path="/"  element={<Layout />}>
@@ -18,9 +18,9 @@ function App() {
           <Route path="club/:club_id" element = {<ClubDetails />}/>
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
   )
 }
-
 export default App

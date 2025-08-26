@@ -29,6 +29,7 @@ const ReviewForm = ({ setOpenReviewForm, club_id }) => {
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="relative bg-neutral-900 border border-primary/30 rounded-2xl p-6 max-w-md w-full shadow-2xl">
         <button
+
         <button 
           onClick={() => setOpenReviewForm(false)}
           className="absolute -top-3 -right-3 bg-primary hover:bg-primary/90 text-white w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all duration-300 hover:rotate-90"

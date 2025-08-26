@@ -136,6 +136,7 @@ const Footer = () => {
           </p>
           <div className="flex items-center gap-2 text-neutral-200">
 
+
             <h3 className="text-xl font-bold text-neutral-800 mb-6 relative pb-2 after:absolute after:left-0 after:bottom-0 after:w-12 after:h-1 after:bg-primary">
               Contact Us
             </h3>
@@ -186,6 +187,7 @@ const Footer = () => {
             © {new Date().getFullYear()} ENSAF CLUBS. All rights reserved.
           </p>
           <div className="flex items-center gap-2 text-neutral-700">
+
             <span className="text-sm">Made with</span>
             <FaHeart className="text-red-500" />
             <span className="text-sm">by Yassine Ben Kacem & Mohamed Boukharta</span>

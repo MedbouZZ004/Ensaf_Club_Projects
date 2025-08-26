@@ -165,6 +165,36 @@ const useClubsStore = create((set) => ({
         return {success:false, error:'Error occurred while submitting the review '}
     }
     
+  },
+  sendMessage: async (formData, admin_id)=>{
+    const user = localStorage.getItem('user');
+    if(!user) return toast.error('You must be logged in to send a message.');
+    try{
+        const res = await fetch(`/api/clubs/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ ...formData, admin_id })
+        });
+        if(!res.ok){
+            console.log("Error occurred while sending message:", res.statusText);
+            return {success:false, error:'Error occurred while sending message'};
+        }
+        const data = await res.json();
+        if(data.success){
+            toast.success(data.message);
+            return {success:true, error:null};
+        }else{
+            toast.error(data.message || "Error occurred while sending message");
+            return {success:false, error:data.error || 'Error occurred while sending message'};
+        }
+    }catch(err){
+        console.error("Error occurred while sending message:", err);
+        return {success:false, error:'Error occurred while sending message'};
+    }
+
 
   }
 }))

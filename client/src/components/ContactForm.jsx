@@ -1,5 +1,19 @@
-
-const ContactForm = () => {
+import { useActionState } from "react";
+import useClubsStore from "../store/useClubsStore";
+import { toast } from "react-toastify";
+const ContactForm = ({admin_id}) => {
+  const { sendMessage } = useClubsStore();
+  const [state, formAction, isPending] = useActionState(handleSubmit, { success: null, message: '' });
+  async function handleSubmit(prevState, formData) {
+    const subject = formData.get('subject');
+    const text = formData.get('text');
+    const result = await sendMessage({ subject, text }, admin_id);
+    if(result?.success) {
+      return {success: true, message: result.message || 'Message sent successfully!'};
+    }else{
+      return {success:false, message: result?.error || 'Failed to send message.'}
+    }
+  }
   return (
     <div className="p-6 bg-gradient-to-br from-neutral-900 to-neutral-900/80 rounded-2xl shadow-xl border border-primary/50">
       <div className="text-center mb-8">
@@ -9,7 +23,7 @@ const ContactForm = () => {
         </p>
       </div>
 
-      <form className="space-y-6">
+      <form action={formAction} className="space-y-6">
         <div className="relative">
           <label htmlFor="title" className="block text-primary font-medium mb-2">
             Subject
@@ -23,7 +37,7 @@ const ContactForm = () => {
             <input
               type="text"
               id="title"
-              name="title"
+              name="subject"
               placeholder="What is this regarding?"
               className="w-full pl-10 pr-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all duration-300"
               required
@@ -43,14 +57,20 @@ const ContactForm = () => {
             </div>
             <textarea
               id="message"
-              name="message"
+              name="text"
               rows="5"
               placeholder="Tell us how we can help you..."
               className="w-full pl-10 pr-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-xl text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all duration-300 resize-none"
               required
             ></textarea>
           </div>
+          <div>
+            {state.success && state.message ? 
+            <p className="text-green-500 font-roboto">{state.message}</p>
+            :<p className="text-red-500 font-roboto">{state.message}</p> }
+          </div>
         </div>
+        
 
         <div className="flex items-center justify-between pt-4">
           <div className="flex items-center text-sm text-neutral-300">
@@ -63,7 +83,7 @@ const ContactForm = () => {
             type="submit"
             className="bg-orange-400  hover:bg-orange-300/90 text-white cursor-pointer  hover:text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-primary/20"
           >
-            Send Message
+            {isPending ? "Sending..." : "Send Message"}
           </button>
         </div>
       </form>

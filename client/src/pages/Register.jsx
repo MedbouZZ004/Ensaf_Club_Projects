@@ -118,7 +118,7 @@ const Register = () => {
             </div>
             <button
               type="submit"
-              className="w-[100%] bg-orange-300 text-neutral-700 cursor-pointer font-medium py-2.5 rounded-lg border border-orange-300/60 shadow transition-all duration-200 hover:bg-orange-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
             >
               {isPending ? "Loading..." : "Register"}
             </button>

@@ -6,14 +6,18 @@ import ExistingClubs from '../components/ExistingClubs'
 import GoUp from '../components/GoUp'
 import useClubsStore from '../store/useClubsStore'
 import { useEffect } from 'react'
+import Loader from '../components/Loader'
+import Error from '../components/Error'
 const  Home = () => {
   const { clubs, loading, error, getClubs } = useClubsStore();
   useEffect(()=>{
     getClubs();
   },[getClubs])
   if(loading){
-    return <div className='min-h-screen flex items-center justify-center text-2xl font-semibold'>Loading...</div>
+    return <Loader />
   }
+  if(error) return <Error error={error} />
+
   if(error){
     return <div className='min-h-screen flex items-center justify-center text-2xl font-semibold'>{error}</div>
   }

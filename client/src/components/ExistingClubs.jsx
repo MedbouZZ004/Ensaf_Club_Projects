@@ -14,7 +14,7 @@ const ExistingClubs = ({clubs}) => {
   }, [query, clubs]);
   
   return (
-    <div className='min-h-screen  flex-col gap-4 text-white relative px-10 py-4 flex items-center'>
+    <div id="search" className='min-h-screen  flex-col gap-4 text-white relative px-10 py-4 flex items-center'>
       <h1 className='w-[100%] font-roboto font-bold  text-center text-[#ffd28f] text-4xl '>SEARCH FOR CLUBS</h1>
       <p className='text-center text-neutral-400 font-roboto'>Find your perfect club match, you can search by name OR category</p>
       <SearchForm  setQuery={setQuery} />

@@ -10,6 +10,8 @@ import ClubContact from '../components/ClubContact';
 import useClubsStore from '../store/useClubsStore';
 import Views from '../components/Views';
 import GoUp from '../components/GoUp';
+import Loader from '../components/Loader';
+import Error from '../components/Error';
 
 const ClubDetails = () => {
   const {club_id} = useParams();
@@ -22,9 +24,8 @@ const ClubDetails = () => {
     getClubById(club_id)
   }, [club_id, getClubById])
 
-  if(loading) return <div>Loading...</div>;
-  if(error) return <div>{error}</div>;
-  console.log(club)
+  if(loading) return <Loader />;
+  if(error) return <Error error={error} />;
   return (
     <main className='relative overflow-x-hidden'>
       <ClubImages  
@@ -58,7 +59,10 @@ const ClubDetails = () => {
       />
 
       <ClubContact
+       admin_id={club?.admin}
       />
+      <div className='relative left-300 mb-5'>
+
       <div className='relative left-310 mb-5'>
         <Views views={club?.views} />
       </div>
