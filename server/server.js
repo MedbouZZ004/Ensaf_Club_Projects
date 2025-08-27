@@ -8,6 +8,7 @@ import clubsRoutes from './routes/clubs.routes.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import globalLimiter from './middlewares/rateLimiter.js';
 
 
 dotenv.config();
@@ -19,6 +20,8 @@ server.use(cors({
 }))
 server.use(cookieParser());
 server.use(express.json());
+// Apply a gentle global rate limiter
+server.use(globalLimiter);
 // Make the uploads folder accessible via HTTP
 server.use(
   "/uploads",
