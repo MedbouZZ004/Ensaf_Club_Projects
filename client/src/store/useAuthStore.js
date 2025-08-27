@@ -80,6 +80,58 @@ const useAuthStore = create((set)=>({
             console.error('Logout error:', err);
             toast.error('Logout failed');
         }
+    },
+    forgotPassword: async (email) =>{
+    try{
+        const res = await fetch('/api/auth/send-reset-otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({email})
+        });
+        const data = await res.json();
+        if(!data.success){
+           toast.error(data.message)
+           return {success:false, message: data.message}
+        }
+        toast.success(data.message)
+
+        setTimeout(() => {
+            window.location.href = '/reset-password';
+        }, 1600);
+        return {success:true, message:data.message}
+    }catch(err){
+        console.error(err.message);
+        toast.error("Error occured while sending reset password email")
+        return {success:false, message:'Error occured while sending reset password email'}
     }
+  },
+  resetPassword: async (email, otp, newPassword)=>{
+    try{
+        const res = await fetch('/api/auth/reset-password', {
+            method: 'POST',
+            headers:{
+                'Content-Type':'application/json'
+            },
+            body:JSON.stringify({email, otp, newPassword})
+        })
+        const data = await res.json();
+        if(!data.success){
+            toast.error(data.message)
+            return {success:data.success, message:data.message || 'reset password failed.'}
+        }
+        toast.success(data.message)
+        return {success:data.success, message: data.message || 'reset password successful.'}
+
+    }catch(err){
+        console.error(err);
+        toast.error("Error occured while resetting password")
+        return {success:false, message:'Error occured while resetting password'}
+    }
+
+  }
 }))
+
+
 export default useAuthStore;

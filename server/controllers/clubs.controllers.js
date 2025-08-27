@@ -492,7 +492,6 @@ export const submitForm = async (req, res) => {
     }
 
     const adminEmail = adminInfo[0].email;
-    console.log("Admin email:", adminEmail);
     const emailContent = USER_MESSAGE_TO_ADMIN
       .replace(/{userName}/g, userInfo.full_name)
       .replace(/{userEmail}/g, userInfo.email)
@@ -531,10 +530,7 @@ export const submitForm = async (req, res) => {
     // Send the email
     const info = await transporter.sendMail(mailOptions);
 
-    console.log("Email sent ✅");
-    console.log("Message ID:", info.messageId);
-    console.log("Accepted:", info.accepted);
-    console.log("Rejected:", info.rejected);
+
 
     // If Brevo rejected the email
     if (info.rejected.length > 0) {

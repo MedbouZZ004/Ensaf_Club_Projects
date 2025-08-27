@@ -1,11 +1,25 @@
 import React from 'react'
 import ReturnButton from '../components/ReturnButton'
+import useAuthStore from '../store/useAuthStore'
+import { useActionState } from 'react';
 
 const ForgotPassword = () => {
+  const {forgotPassword} = useAuthStore();
+  const [state, formAction, isPending] = useActionState(handleSubmit, {success:null, message:null});
+
+  async function handleSubmit(prevState, formData){
+    const email = formData.get('email');
+    const result = await forgotPassword(email);
+    if(result.success){
+      return {success:result.success, message: result.message}
+    }else{
+      return {success:result.success, message: result.message}
+    }
+  }
+    
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-10 relative">
       <ReturnButton />
-            
       <div className="w-full max-w-md bg-neutral-800/30 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 shadow-xl">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
@@ -17,7 +31,7 @@ const ForgotPassword = () => {
           <p className="text-neutral-300">Enter your email and we'll send you a reset link</p>
         </div>
         
-        <form className="space-y-6">
+        <form action={formAction} className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="email" className="block text-sm font-medium text-neutral-300">Email address</label>
             <div className="relative">
@@ -28,7 +42,8 @@ const ForgotPassword = () => {
               </div>
               <input 
                 id="email"
-                type="email" 
+                type="email"
+                name="email" 
                 className="w-full pl-10 pr-4 py-3 bg-neutral-800/60 border border-orange-300/40 rounded-lg outline-none  text-orange-50 placeholder-orange-200/70 focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60 transition-all duration-300" 
                 placeholder="Enter your email address"
               />
@@ -38,11 +53,16 @@ const ForgotPassword = () => {
             type="submit" 
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
           >
-            Send Reset Link
+            {isPending? 'sending....' : 'Send reset link'}
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
             </svg>
           </button>
+          {state.message && (state.success ? 
+            <p className='text-green-500 font-roboto'>{state.message}</p>
+            :
+            <p className='text-red-500 font-roboto'>{state.message}</p> 
+            )}
         </form>
       </div>
     </div>

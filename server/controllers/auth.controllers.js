@@ -211,13 +211,18 @@ export const isAuthenticated = async (req, res) => {
 // ---------------- SEND RESET OTP ----------------
 export const sendResetOtp = async (req, res) => {
   const { email } = req.body;
+  console.log(email);
   if (!email) {
-    return res.status(401).json({ message: "Please fill all fields" });
+    return res.status(401).json({ 
+      success:false,
+      message: "Please fill all fields" });
   }
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (rows.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success:false,
+        message: "User not found" });
     }
     const OtpResetToken = generateVerificationCode();
     const ResetTokenExpireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -235,10 +240,15 @@ export const sendResetOtp = async (req, res) => {
     };
     await transporter.sendMail(mailOptions);
 
-    res.json({ message: "Reset Otp sent." });
+    res.json({
+      success: true,
+      message: "A Code for 6 digits has been sent to your email."
+    });
   } catch (err) {
     console.error("SEND RESET OTP error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({
+      success:false, 
+      message: "Internal server error" });
   }
 };
 
@@ -247,28 +257,38 @@ export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   if (!email || !otp || !newPassword) {
-    return res.status(400).json({ message: "Please enter all fields" })
+    return res.status(400).json({ 
+      success:false,
+      message: "Please enter all fields" })
   }
 
   if (!passwordRegex.test(newPassword)) {
-    return res.status(400).json({ error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
+    return res.status(400).json({ 
+      success:false,
+      error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
   }
 
   try {
     const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     if (rows.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success:false,
+        message: "User not found" });
     }
 
     const userData = rows[0];
 
     if (!userData.resetotp || userData.resetotp !== otp) {
-      return res.status(400).json({ error: "Invalid OTP" });
+      return res.status(400).json({ 
+        success:false,
+        error: "Invalid Code" });
     }
 
     const expirationDate = new Date(userData.resetotpexpireat);
     if (expirationDate < new Date()) {
-      return res.status(400).json({ error: "OTP expired" });
+      return res.status(400).json({ 
+        success:false,
+        error: "OTP expired" });
     }
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -278,9 +298,13 @@ export const resetPassword = async (req, res) => {
       [hashedNewPassword, null, null, email]
     );
 
-    return res.status(200).json({ message: "Password reset successfully :)" });
+    return res.status(200).json({
+      success:true,
+      message: "Password reset successfully :)" });
   } catch (err) {
     console.error("RESET PASSWORD error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ 
+      success:false,
+      message: "Internal server error" });
   }
 };

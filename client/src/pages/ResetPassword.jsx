@@ -1,13 +1,67 @@
 import React, { useState, useRef, useEffect } from 'react';
-
+import { toast } from 'react-toastify';
+import useAuthStore from '../store/useAuthStore';
+import { Link } from 'react-router-dom';
 const ResetPassword = () => {
+    const {resetPassword} = useAuthStore();
+
     const [token, setToken] = useState(['', '', '', '', '', '']);
     const [activeInput, setActiveInput] = useState(0);
     const inputRefs = useRef([]);
+    const [isPending, setIsPending] = useState(false);
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
-        // TODO: hook to your reset API
+        if (isPending) return;
+
+        const form = e.currentTarget;
+        const formData = new FormData(form);
+        const email = (formData.get('email') || '').toString().trim();
+        const password = (formData.get('password') || '').toString();
+        const confirmPassword = (formData.get('confirmPassword') || '').toString();
+        const otp = token.join('').trim();
+
+        // Client-side validations
+        if (!email) {
+            toast.error('Email is required');
+            return;
+        }
+        if (otp.length !== 6) {
+            toast.error('Please enter the 6-character reset token');
+            // focus first empty token input
+            const idx = token.findIndex(t => !t);
+            if (idx >= 0 && inputRefs.current[idx]) setActiveInput(idx);
+            return;
+        }
+        if (!password) {
+            toast.error('Password is required');
+            return;
+        }
+        // At least 8 chars, contains letters and numbers
+        const strongEnough = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
+        if (!strongEnough) {
+            toast.error('Password must be at least 8 characters and contain letters and numbers');
+            return;
+        }
+        if (password !== confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+        }
+
+        try {
+            setIsPending(true);
+            const result = await resetPassword(email, otp, password);
+            // The store already toasts. We can optionally clear form on success.
+            if (result?.success) {
+                setToken(['', '', '', '', '', '']);
+                form.reset();
+                setActiveInput(0);
+            }
+    } catch {
+            // Errors already handled/toasted in the store, keep silent here
+        } finally {
+            setIsPending(false);
+        }
     };
 
     const handleTokenChange = (index, value) => {
@@ -80,7 +134,8 @@ const ResetPassword = () => {
                                     name="email"
                                     required
                                     placeholder="Enter your email"
-                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60"
+                                    disabled={isPending}
+                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -98,7 +153,8 @@ const ResetPassword = () => {
                                         onKeyDown={(e) => handleKeyDown(index, e)}
                                         onFocus={() => setActiveInput(index)}
                                         ref={(el) => (inputRefs.current[index] = el)}
-                                        className="w-12 h-12 bg-neutral-800/60 border-2 border-orange-300/40 text-orange-50 text-center text-xl font-bold rounded-lg outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-300/60 cube-input"
+                                        disabled={isPending}
+                                        className="w-12 h-12 bg-neutral-800/60 border-2 border-orange-300/40 text-orange-50 text-center text-xl font-bold rounded-lg outline-none transition focus:border-orange-300 focus:ring-2 focus:ring-orange-300/60 cube-input disabled:opacity-60 disabled:cursor-not-allowed"
                                     />
                                 ))}
                             </div>
@@ -119,7 +175,8 @@ const ResetPassword = () => {
                                     name="password"
                                     required
                                     placeholder="Enter your new password"
-                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60"
+                                    disabled={isPending}
+                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -138,20 +195,27 @@ const ResetPassword = () => {
                                     name="confirmPassword"
                                     required
                                     placeholder="Confirm your new password"
-                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60"
+                                    disabled={isPending}
+                                    className="w-full pl-10 bg-neutral-800/60 border border-orange-300/40 text-orange-50 placeholder-orange-200/70 rounded-lg px-3 py-2 outline-none transition focus:border-orange-300/80 focus:ring-1 focus:ring-orange-300/60 disabled:opacity-60 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
 
                         <button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
+                            disabled={isPending}
+                            className="w-full bg-primary hover:bg-primary/90 disabled:hover:bg-primary disabled:opacity-70 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
                         >
-                            Reset Password
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                            </svg>
+                            {isPending ? 'Resetting…' : 'Reset Password'}
+                            {!isPending && (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
                         </button>
+                        <p className='text-neutral-300 '>go to login page
+                            <Link to="/login" className="ml-2 text-orange-200 underline">Login</Link>
+                        </p>
                     </form>
                 </div>
             </div>
