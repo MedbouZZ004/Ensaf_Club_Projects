@@ -114,5 +114,33 @@ export const logOutAdmin = (req, res) => {
 
 
 export const getStatistics = async(req,res)=>{
-  res.json({message:"Here are some statistics for the admin dashboard."});
+   try { 
+    const admin_id = req.admin.admin_id;
+    // Now let's get aggregated statistics for this admin across all their clubs
+    const [rows] = await pool.query(
+      `SELECT 
+          a.admin_id,
+          a.full_name,
+          COUNT(DISTINCT cl.club_id) AS total_clubs,
+          COALESCE(SUM(cl.views), 0) AS total_views,
+          COALESCE(SUM(cl.likes), 0) AS total_likes,
+          COALESCE(COUNT(DISTINCT r.user_id), 0) AS total_reviews
+       FROM admins a
+       LEFT JOIN clubs cl ON a.admin_id = cl.admin_id
+       LEFT JOIN reviews r ON cl.club_id = r.club_id
+       WHERE a.admin_id = ?
+       GROUP BY a.admin_id, a.full_name`, [admin_id]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: rows,
+    });
+  } catch (err) {
+    console.error("Error fetching admin stats:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
 }
