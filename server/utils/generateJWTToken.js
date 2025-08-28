@@ -15,4 +15,19 @@ export const generateJwtToken = (user_id,res)=>{
         path: "/"
     });
     return token;
-}
+} 
+
+
+export const generateJWTAdmin =  (admin_id,res)=>{
+    const token_admin = jwt.sign ({admin_id},process.env.JWT_SECRET,{
+        expiresIn:"7d",
+    });
+    res.cookie("token_admin",token_admin,{
+        httpOnly:true,
+        secure : process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? 'none':"strict",
+        maxAge:7*24*60*1000,
+        path: "/"
+    });
+    return token_admin;
+} 
