@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react'
 import { IoIosAdd } from "react-icons/io";
 import ReviewCard from './ReviewCard';
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa6";
+import { IoMdAlert } from "react-icons/io";
 import ReviewForm from './ReviewForm';
 const ClubReviews = ({reviews = [], club_id}) => {
   const scrollRef = useRef(null)
@@ -17,6 +18,10 @@ const ClubReviews = ({reviews = [], club_id}) => {
       {openReviewForm && <ReviewForm setOpenReviewForm={setOpenReviewForm} club_id={club_id} />}
       <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 w-[50vw] max-w-[340px] h-[50vw] max-h-[340px] rounded-full bg-orange-200/20 blur-[140px]" />
       <h2 className='text-primary font-roboto  text-4xl font-bold mb-4'>CLUB TESTIMONIALS</h2>
+      <p
+       className='flex w-full items-center gap-2 text-red-500 font-roboto'
+      >
+       <IoMdAlert  size={20}/> You can only make one review!</p>
       <div className='w-full flex justify-end'>
         <button
           onClick={() => setOpenReviewForm(true)}

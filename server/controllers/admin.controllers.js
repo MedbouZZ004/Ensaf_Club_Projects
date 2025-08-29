@@ -45,55 +45,70 @@ export const signUpAdmin = async (req,res)=>{
     catch (err) {
     console.error("SignUp:", err.message);
     if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ message: "An admin with this email already exists." });
+      return res.status(400).json({ success: false, message: "An admin with this email already exists." });
     }
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
 export const logAsAdmin = async (req,res)=>{
     try {
         const {email,password}=req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if(!password || !email){
-            return res.status(400).json({message:"Please provide full name and email"});
+            return res.status(400).json({
+              success:false,
+              message:"Please provide full name and email"});
         } 
         if (!emailRegex.test(email)) {
-             return res.status(400).json({ error: "Invalid email format" });
+             return res.status(400).json({ 
+              success:false,
+              message: "Invalid email format" });
          }
          if (!passwordRegex.test(password)) {
-          return res.status(400).json({ error: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
+          return res.status(400).json({ 
+            success:false,
+            message: "Invalid password format, it must be at least 8 characters long and contain at least one letter and one number." });
              }
         // Check if the user exists
         const [rows]=await pool.query('SELECT * FROM admins WHERE email=?',[email]);
         if(rows.length === 0){
-            return res.status(404).json({message:"Admin not found"});
+            return res.status(404).json({
+              success:false,
+              message:"Admin not found"});
         }  
 
         const admin = rows[0];
         // Create a JWT token
          const isMatching = await bcrypt.compare(password, admin.password);
             if (!isMatching) {
-              return res.status(401).json({ error: "Invalid password" });
+              return res.status(401).json({ 
+                success: false,
+                message: "Invalid password" });
             }
         
             generateJWTAdmin(admin.admin_id, res);
              res.status(200).json({
+              success:true,
                message: "LoggedIn successfully as admin",
                user: {
                adminId: admin.admin_id,
                fullname: admin.full_name,
                 email: admin.email,
                 role: admin.role
-                    },
+                  },
                });
     }
     catch (err) {
     console.error("LogIn:", err.message);
     if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ message: "An admin with this email already exists." });
+      return res.status(400).json({ 
+        success:false,
+        message: "An admin with this email already exists." });
     }
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ 
+      success:false,
+      message: "Internal server error" });
   }
 } 
 
