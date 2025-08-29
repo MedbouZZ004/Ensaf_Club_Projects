@@ -6,6 +6,9 @@ const Layout = () => {
   return (
     <main className='flex gap-2'>
         {!hideSidebar && <SideBar />}
+        <div className='bg-gray-50 w-full'>
+          <Outlet />
+        </div>
         <Outlet />
     </main>
   )

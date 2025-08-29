@@ -120,10 +120,14 @@ export const logOutAdmin = (req, res) => {
       sameSite: process.env.NODE_ENV === "production" ? 'none' : "strict",
       maxAge: 7 * 24 * 60 * 1000,
     })
-    return res.json({ message: "LoggedOut :c " });
+    return res.json({ 
+      success:true,
+      message: "Logged Out Successfully" });
   } catch (err) {
     console.error("LogOut error:", err.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ 
+      success:false,
+      message: "Internal server error" });
   }
 };  
 

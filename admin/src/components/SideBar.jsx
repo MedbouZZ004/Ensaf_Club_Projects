@@ -31,6 +31,7 @@ const SideBar = () => {
     {
       name: "Logout",
       path: "login",
+      logout: logout,
       icon: <IoMdLogOut />
     },
   ];

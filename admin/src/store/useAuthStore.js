@@ -43,6 +43,7 @@ const useAuthStore = create((set) => ({
                 return { success: data.success, message: data.message };
             }
             toast.success("Logout successful");
+            localStorage.removeItem('admin');
             localStorage.removeItem("admin");
             setTimeout(() => {
                 window.location.href = '/login';

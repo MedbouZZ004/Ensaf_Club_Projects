@@ -21,6 +21,7 @@ const Login = () => {
   }
   return (
     <main className='flex font-roboto items-center justify-center h-screen w-full'>
+        <div className='flex flex-col p-4 w-90 rounded-lg shadow-sm shadow-gray-300 gap-5'>
         <div className='flex flex-col p-4 w-90 rounded-lg shadow-md shadow-gray-300 gap-5'>
             <h1 className='font-bold text-orange-400 w-full text-3xl text-center'>Login</h1>
             <form action={formAction}  className='flex flex-col gap-8'>
