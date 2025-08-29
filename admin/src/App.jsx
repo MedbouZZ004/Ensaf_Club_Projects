@@ -22,9 +22,6 @@ function App() {
         </Route>
       </Route>
       <Route path = "/login" element={<Login />} />
-        <Route path = "clubs" element={<ClubsPage />} />
-      </Route>
-      <Route path = "login" element={<Login />} />
     </Routes>
   )
 }

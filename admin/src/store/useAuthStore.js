@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { toast } from "react-toastify";
 const useAuthStore = create((set) => ({
-    
     login:async (formData)=>{
         try{
             const res = await fetch("/api/admin/login", {
@@ -44,7 +43,6 @@ const useAuthStore = create((set) => ({
             }
             toast.success("Logout successful");
             localStorage.removeItem('admin');
-            localStorage.removeItem("admin");
             setTimeout(() => {
                 window.location.href = '/login';
             }, 1500);

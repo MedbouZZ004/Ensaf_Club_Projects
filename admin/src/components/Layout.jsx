@@ -9,7 +9,6 @@ const Layout = () => {
         <div className='bg-gray-50 w-full'>
           <Outlet />
         </div>
-        <Outlet />
     </main>
   )
 }
