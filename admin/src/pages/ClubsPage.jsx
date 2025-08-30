@@ -4,13 +4,16 @@ import Loader from '../components/Loader';
 import Error from '../components/Error';
 import {FaEdit, FaTrash, FaEye, FaChevronLeft, FaChevronRight} from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom';
-
+import ClubDetailsCard from '../components/ClubDetailsCard';
 const ClubsPage = () => {
   const {clubs, getClubs, error, loading } = useClubsStore();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+
+  const [selectedClub, setSelectedClub] = useState(null);
+  const [openClubCardDetails, setOpenClubDetails] = useState(false);
 
   useEffect(() => {
     getClubs();
@@ -59,7 +62,11 @@ const ClubsPage = () => {
 
   return (
     <div className="w-full h-screen font-roboto overflow-y-auto flex flex-col gap-6 px-4 py-8">
-      {/* Header */}
+      {openClubCardDetails && (
+        <ClubDetailsCard 
+        setOpenClubDetails={setOpenClubDetails}
+        selectedClub={selectedClub} />
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <h1 className="text-2xl font-bold text-gray-800 font-roboto">
           Clubs <span className="text-orange-400 font-normal">({filteredClubs.length})</span>
@@ -73,7 +80,7 @@ const ClubsPage = () => {
             type="text"
           />
           <button
-          onClick={()=> navigate('/clubs/add-club')}
+          onClick={()=> navigate('/clubs/add-edit-club')}
           title="ADD CLUB"
           className="bg-orange-400 hover:bg-orange-400/80 cursor-pointer text-white px-4 py-2 rounded-lg font-bold text-lg transition">+</button>
         </div>
@@ -102,8 +109,15 @@ const ClubsPage = () => {
                     <span className="font-medium text-gray-800 truncate max-w-[160px] sm:max-w-[240px]">{club.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="p-2 rounded hover:bg-orange-400 hover:text-white text-orange-500" title="View"><FaEye /></button>
-                    <button className="p-2 rounded hover:bg-blue-400 hover:text-white text-blue-500" title="Edit"><FaEdit /></button>
+                    <button 
+                    onClick={() => {
+                      setSelectedClub(club);
+                      setOpenClubDetails(true);
+                    }}
+                    className="p-2 rounded hover:bg-orange-400 hover:text-white text-orange-500" title="View"><FaEye /></button>
+                    <button 
+                    onClick={()=>navigate(`/clubs/add-edit-club?id=${club.club_id}`)}
+                    className="p-2 rounded hover:bg-blue-400 hover:text-white text-blue-500" title="Edit"><FaEdit /></button>
                     <button className="p-2 rounded hover:bg-red-500 hover:text-white text-red-500" title="Delete"><FaTrash /></button>
                   </div>
                 </li>
