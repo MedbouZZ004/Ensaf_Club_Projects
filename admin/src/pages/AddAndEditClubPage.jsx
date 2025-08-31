@@ -2,8 +2,10 @@ import React from 'react'
 import { useActionState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 const AddAndEditClubPage = () => {
-  const categoriesNumbers = [1, 2, 3, 4, 5, 6]
+  const categoriesNumbers = [1, 2, 3, 4, 5, 6];
+  const imageNumbers = [1, 2, 3, 4, 5, 6];
   const [numberOfCategories, setNumberOfCategories] = React.useState(0)
+  const [numberOfImages, setNumberOfImages] = React.useState(0)
   const [state, formAction, isPending] = useActionState(handleSubmit, {success:null, message:null});
   const [searchParams] = useSearchParams();
   const clubId = searchParams.get("id");
@@ -34,7 +36,6 @@ const AddAndEditClubPage = () => {
       adminEmail,
       adminPassword
     }
-    console.log(data)
   }
   return (
     <main className="p-4  h-screen overflow-y-auto md:p-6 lg:p-8 space-y-6">
@@ -177,6 +178,46 @@ const AddAndEditClubPage = () => {
                   className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
               </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="club-images" className="block text-sm font-medium text-gray-700 mb-1">
+                 {clubId ? 'Edit Club Main Images' : 'Club Main Images'}
+                </label>
+                <select
+                  id="club-images"
+                  className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
+                  defaultValue=""
+                  onChange={(e) => setNumberOfImages(Number(e.target.value || 0))}
+                >
+                  <option value="">Select number of Main Images You Want To add</option>
+                  {imageNumbers.map((number) => (
+                    <option key={number} value={number}>
+                      {number}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {numberOfImages > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Array.from({ length: numberOfImages }, (_, index) => (
+                    <div key={index}>
+                      <label htmlFor={`image-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                      {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
+                      </label>
+                      <input
+                        id={`image-${index}`}
+                        type="file"
+                        name={`image-${index}`}
+                        accept="image/*"
+                        required
+                        className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>

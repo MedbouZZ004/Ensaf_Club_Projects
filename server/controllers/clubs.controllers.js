@@ -1,20 +1,36 @@
 import pool from "../db/connectDB.js";
 import { USER_MESSAGE_TO_ADMIN } from '../utils/emailTemplates.js';
 import transporter from '../config/nodemailer.config.js';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
   try {
-    // Get the base URL dynamically
     const PORT = process.env.PORT || 5000;
-    //Automatically gets http://localhost:PORT or production host.
     const baseUrl = `${req.protocol}://${req.get("host")}`;
-    // This  Fetch all clubs, include per-user liked flag when available
+
+    // Fetch all clubs + admin info + per-user like status
     const [clubs] = await pool.query(
       `SELECT 
-         c.club_id, c.name, c.description, c.logo, c.views, c.likes,
-         EXISTS(SELECT 1 FROM club_likes cl WHERE cl.club_id = c.club_id AND cl.user_id = ?) AS likedByMe
-       FROM clubs c`,
+         c.club_id,
+         c.name,
+         c.description,
+         c.logo,
+         c.views,
+         c.likes,
+         a.admin_id,
+         a.email AS admin_email,
+         a.role AS admin_role,
+         a.full_name,
+         EXISTS(
+           SELECT 1 
+           FROM club_likes cl 
+           WHERE cl.club_id = c.club_id AND cl.user_id = ?
+         ) AS likedByMe
+       FROM clubs c
+       LEFT JOIN admins a ON c.admin_id = a.admin_id`,
       [req.user?.user_id ?? null]
     );
 
@@ -22,34 +38,44 @@ export const getAllClubsForHomePage = async (req, res) => {
       return res.status(404).json({ message: "No clubs found." });
     }
 
-    // This  Fetch categories for all clubs at once
+    // Fetch categories for all clubs
     const [categories] = await pool.query(`
       SELECT cc.club_id, ca.name AS category_name
       FROM club_categories AS cc
       JOIN categories AS ca ON cc.category_id = ca.category_id
     `);
 
-    // This  Attach categories to their clubs
-    const clubsWithCategories = clubs.map(club => {
+    // Attach categories + format data + add admin info properly
+    const clubsWithDetails = clubs.map(club => {
       const clubCats = categories
         .filter(cat => cat.club_id === club.club_id)
         .map(cat => cat.category_name);
-
+      const admin = {
+        admin_id: club.admin_id,
+        email: club.admin_email,
+        role: club.admin_role,
+        full_name: club.full_name
+      };
       return {
-        ...club,
-        // ensure boolean for likedByMe
+        club_id: club.club_id,
+        name: club.name,
+        description: club.description,
+        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}`: null,
+        views: club.views,
+        likes: club.likes,
         likedByMe: Boolean(club.likedByMe),
-        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}` : null,
-        categories: clubCats
+        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}`: null,
+        categories: clubCats,
+        admin
       };
     });
-    return res.status(200).json(clubsWithCategories);
+
+    return res.status(200).json(clubsWithDetails);
   } catch (err) {
     console.error("Error fetching clubs:", err.message);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 // Get club by ID
 export const getClubById = async (req, res) => {
@@ -554,4 +580,93 @@ export const submitForm = async (req, res) => {
       message: "Internal server error"
     });
   }
+};
+
+// delete club:
+
+export const deleteClub = async (req, res) => {
+  const connection = await pool.getConnection();
+
+  try {
+    const club_id = req.params.id;
+
+    await connection.query("START TRANSACTION");
+    const [clubRows] = await connection.query("SELECT * FROM clubs WHERE club_id = ?", [club_id]);
+    if (clubRows.length === 0) {
+      await connection.query("ROLLBACK");
+      connection.release();
+      return res.status(404).json({ success: false, message: "Club not found" });
+    }
+
+    const club = clubRows[0];
+    const adminId = club.admin_id;
+    const tableExists = async (conn, tableName) => {
+      const [rows] = await conn.query(`
+        SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = ?`,
+        [process.env.MYSQL_DB, tableName]
+      );
+      return rows[0].cnt > 0;
+    };
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const uploadsRoot = path.join(serverDir, '..', 'uploads');
+    const sanitizedFolderName = club.name.replace(/[^a-zA-Z0-9-]/g, '').replace(/\+/g, '').trim();
+    const clubFolderPath = path.join(uploadsRoot, sanitizedFolderName);
+    let folderDeleted = false;
+    try {
+      await fs.rm(clubFolderPath, { recursive: true, force: true });
+      folderDeleted = true;
+    } catch (err) {
+      console.error("Error deleting club folder:", err);
+    }
+    if (await tableExists(connection, 'activities_images')) {
+      await connection.query(`
+        DELETE ai FROM activities_images ai INNER JOIN activities a ON ai.activity_id = a.activity_id WHERE a.club_id = ?`,
+        [club_id]
+      );
+    }
+
+    if (await tableExists(connection, 'activities')) {
+      await connection.query("DELETE FROM activities WHERE club_id = ?", [club_id]);
+    }
+
+    if (await tableExists(connection, 'reviews')) {
+      await connection.query("DELETE FROM reviews WHERE club_id = ?", [club_id]);
+    }
+    if (await tableExists(connection, 'likes')) {
+      await connection.query("DELETE FROM likes WHERE club_id = ?", [club_id]);
+    } else if (await tableExists(connection, 'club_likes')) {
+      await connection.query("DELETE FROM club_likes WHERE club_id = ?", [club_id]);
+    }
+    if (await tableExists(connection, 'views')) {
+      await connection.query("DELETE FROM views WHERE club_id = ?", [club_id]);
+    } else if (await tableExists(connection, 'club_views')) {
+      await connection.query("DELETE FROM club_views WHERE club_id = ?", [club_id]);
+    }
+
+    if (await tableExists(connection, 'club_media')) {
+      await connection.query("DELETE FROM club_media WHERE club_id = ?", [club_id]);
+    }
+
+    if (await tableExists(connection, 'board_membre')) {
+      await connection.query("DELETE FROM board_membre WHERE club_id = ?", [club_id]);
+    }
+    await connection.query("DELETE FROM clubs WHERE club_id = ?", [club_id]);
+    if (adminId && await tableExists(connection, 'admins')) await connection.query("DELETE FROM admins WHERE admin_id = ?", [adminId]);
+
+    await connection.query("COMMIT");
+    connection.release();
+
+    return res.status(200).json({
+      success: true,
+      message: "Club and all related data deleted successfully",
+      folderDeleted,
+      deletedFolderPath: clubFolderPath
+    });
+
+  } catch (error) {
+    console.error("Error deleting club:", error);
+    await connection.query("ROLLBACK");
+    connection.release();
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
 };

@@ -6,7 +6,7 @@ import {FaEdit, FaTrash, FaEye, FaChevronLeft, FaChevronRight} from 'react-icons
 import { useNavigate } from 'react-router-dom';
 import ClubDetailsCard from '../components/ClubDetailsCard';
 const ClubsPage = () => {
-  const {clubs, getClubs, error, loading } = useClubsStore();
+  const {clubs, getClubs, error, loading, deleteClub} = useClubsStore();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,7 +118,13 @@ const ClubsPage = () => {
                     <button 
                     onClick={()=>navigate(`/clubs/add-edit-club?id=${club.club_id}`)}
                     className="p-2 rounded hover:bg-blue-400 hover:text-white text-blue-500" title="Edit"><FaEdit /></button>
-                    <button className="p-2 rounded hover:bg-red-500 hover:text-white text-red-500" title="Delete"><FaTrash /></button>
+                    <button 
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to delete this club?")) {
+                        deleteClub(club.club_id);
+                      }
+                    }}
+                    className="p-2 rounded hover:bg-red-500 hover:text-white text-red-500" title="Delete"><FaTrash /></button>
                   </div>
                 </li>
               ))}

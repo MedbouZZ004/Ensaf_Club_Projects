@@ -43,9 +43,6 @@ const useAuthStore = create((set) => ({
             }
             toast.success("Logout successful");
             localStorage.removeItem('admin');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1500);
             return { success: data.success, message: 'Logout Successful' };
         } catch (err) {
             console.error("Logout error:", err);

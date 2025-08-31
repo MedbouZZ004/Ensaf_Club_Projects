@@ -7,8 +7,8 @@ const ClubDetailsCard = ({ setOpenClubDetails, selectedClub }) => {
   const nameInitial = (selectedClub?.name || 'C').trim().charAt(0).toUpperCase();
   const categories = selectedClub?.categories || [];
   const adminData = {
-    fullname: "Yassine Ben Kacem",
-    email: "yassine@gmail.com",
+    fullname: selectedClub?.admin?.full_name || 'Unknown',
+    email: selectedClub?.admin?.email || 'Unknown',
   };
 
   return (
