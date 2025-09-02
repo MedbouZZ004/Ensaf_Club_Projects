@@ -20,7 +20,6 @@ const useClubsStore = create((set) => ({
            return set({loading:false, error:'Error occured while fetching clubs'})
         }
         const data = await res.json();
-        console.log('data', data)
         set({clubs:data, loading:false})
     }catch(err){
         set({loading:false, error:'Error occured while fetching clubs: ' + err.message})
@@ -49,6 +48,27 @@ const useClubsStore = create((set) => ({
         console.error(err)
         toast.error('Error occured while deleting club: ' + err.message);
         return;
+    }
+  },
+  addClub:async(formData)=>{
+    try{
+        const res = await fetch(`/api/clubs`, {
+            method:"POST",
+            credentials:'include',
+            body:formData  
+        });
+        const data = await res.json();
+        if(data.success){
+            toast.success('club added successfully')
+            return {success:true, message:data.message}
+        }else{
+            toast.error(data.message || 'Some wrong happen...');
+            return {success:false, message:data.message || 'Some wrong happen...'}
+        }
+    }catch(err){
+        console.error(err);
+        toast.error('Error occured while adding club: ' + err.message);
+        return {success:false, message:err.message}
     }
   }
 }));

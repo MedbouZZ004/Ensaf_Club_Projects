@@ -4,6 +4,7 @@ import transporter from '../config/nodemailer.config.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
 
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
@@ -672,8 +673,168 @@ export const deleteClub = async (req, res) => {
 };
 
 export const addClub = async (req,res)=>{
-  console.log(req.body); 
+  try{ 
+    const {
+      clubName,
+      clubDescription,
+      linkedIn = '',
+      instagram = '',
+      adminName,
+      adminEmail,
+      adminPassword,
+      confirmPassword,
+    } = req.body;
+    // categories can be a string or an array in multipart forms
+    let categories = req.body.categories ?? [];
+    if (!Array.isArray(categories)) {
+      categories = categories ? [categories] : [];
+    }
+    
 
+    // Basic validation
+    if (!clubName || !clubDescription) {
+      return res.status(400).json({ success: false, message: 'clubName and clubDescription are required' });
+    }
+    if (!adminName || !adminEmail || !adminPassword || !confirmPassword) {
+      return res.status(400).json({ success: false, message: 'adminName, adminEmail and adminPassword are required' });
+    }
 
-  
+    if (adminPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: 'adminPassword and confirmPassword must match' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/; 
+
+    if (!emailRegex.test(adminEmail)) {
+      return res.status(400).json({ success: false, message: 'Invalid adminEmail format' });
+    }
+
+    if (!passwordRegex.test(adminPassword)) {
+      return res.status(400).json({ success: false, message: 'Invalid adminPassword format' });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.query('START TRANSACTION');
+
+      // Create or reuse admin
+      let adminId;
+      const [existingAdmins] = await connection.query('SELECT admin_id FROM admins WHERE email = ?', [adminEmail]);
+      if (existingAdmins.length > 0) {
+        adminId = existingAdmins[0].admin_id;
+      } else {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
+        const [adminInsert] = await connection.query(
+          'INSERT INTO admins (full_name, email, password, role) VALUES (?, ?, ?, ?)',
+          [adminName, adminEmail, hashedPassword, 'admin']
+        );
+        adminId = adminInsert.insertId;
+      }
+
+      // Prepare uploads folder structure
+      const serverDir = path.dirname(fileURLToPath(import.meta.url));
+      const uploadsRoot = path.join(serverDir, '..', 'uploads');
+      // Sanitize folder name (keep letters, numbers, hyphen)
+      const sanitizedFolderName = String(clubName).replace(/[^a-zA-Z0-9-]/g, '').replace(/\+/g, '').trim() || 'club';
+      const clubBaseDir = path.join(uploadsRoot, sanitizedFolderName);
+      const logoDir = path.join(clubBaseDir, 'logo');
+      const imagesDir = path.join(clubBaseDir, 'images');
+      const videoDir = path.join(clubBaseDir, 'video');
+      await fs.mkdir(logoDir, { recursive: true });
+      await fs.mkdir(imagesDir, { recursive: true });
+      await fs.mkdir(videoDir, { recursive: true });
+      // Move uploaded files from tmp to the club-specific folders
+      const files = req.files || {};
+      const baseRoot = path.join(serverDir, '..');
+      // Logo
+      let logoDbPath = '';
+      if (files.clubLogo && files.clubLogo[0]) {
+        const f = files.clubLogo[0];
+        const src = path.join(baseRoot, f.destination, f.filename);
+        const dest = path.join(logoDir, f.filename);
+        try { await fs.rename(src, dest); } catch {}
+        logoDbPath = `/uploads/${sanitizedFolderName}/logo/${f.filename}`;
+      }
+      // Images
+      const imageDbPaths = [];
+      if (Array.isArray(files.clubMainImages)) {
+        for (const f of files.clubMainImages) {
+          const src = path.join(baseRoot, f.destination, f.filename);
+          const dest = path.join(imagesDir, f.filename);
+          try { await fs.rename(src, dest); } catch {}
+          imageDbPaths.push(`/uploads/${sanitizedFolderName}/images/${f.filename}`);
+        }
+      }
+      // Video
+      let videoDbPath = '';
+      if (files.clubVideo && files.clubVideo[0]) {
+        const f = files.clubVideo[0];
+        const src = path.join(baseRoot, f.destination, f.filename);
+        const dest = path.join(videoDir, f.filename);
+        try { await fs.rename(src, dest); } catch {}
+        videoDbPath = `/uploads/${sanitizedFolderName}/video/${f.filename}`;
+      }
+
+      // Insert club
+      const [clubInsert] = await connection.query(
+        'INSERT INTO clubs (instagram_link, linkedin_link, name, description, admin_id, logo) VALUES (?, ?, ?, ?, ?, ?)',
+        [instagram, linkedIn, clubName, clubDescription, adminId, logoDbPath]
+      );
+      const clubId = clubInsert.insertId;
+
+      // Categories: ensure existence and link
+      if (Array.isArray(categories)) {
+        for (const rawName of categories) {
+          const catName = String(rawName || '').trim();
+          if (!catName) continue;
+          let categoryId;
+          const [existingCat] = await connection.query('SELECT category_id FROM categories WHERE name = ?', [catName]);
+          if (existingCat.length > 0) {
+            categoryId = existingCat[0].category_id;
+          } else {
+            const [catInsert] = await connection.query('INSERT INTO categories (name) VALUES (?)', [catName]);
+            categoryId = catInsert.insertId;
+          }
+          // Link
+          await connection.query('INSERT IGNORE INTO club_categories (club_id, category_id) VALUES (?, ?)', [clubId, categoryId]);
+        }
+      }
+
+      // Media table inserts
+      if (logoDbPath) {
+        // logo stored directly in clubs.logo; nothing to add to club_media for logo
+      }
+      for (const imgPath of imageDbPaths) {
+        await connection.query(
+          'INSERT INTO club_media (club_id, media_url, media_type) VALUES (?, ?, ?)',
+          [clubId, imgPath, 'image']
+        );
+      }
+      if (videoDbPath) {
+        await connection.query(
+          'INSERT INTO club_media (club_id, media_url, media_type) VALUES (?, ?, ?)',
+          [clubId, videoDbPath, 'video']
+        );
+      }
+
+      await connection.query('COMMIT');
+      connection.release();
+
+      return res.status(201).json({ success: true, message: 'Club created successfully', clubId, adminId });
+    } catch (errTx) {
+      try { await pool.query('ROLLBACK'); } catch {}
+      try { connection.release(); } catch {}
+      console.error('Error creating club:', errTx);
+      return res.status(500).json({ success: false, message: 'Server error creating club' });
+    }
+
+  } catch(err){
+    console.error(err);
+    return res.status(500).json({
+      success:false,
+      message:'internal server error'
+    })
+  }
 }

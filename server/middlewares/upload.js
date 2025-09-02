@@ -1,20 +1,22 @@
 
 import multer  from "multer";
 import path from "path";
+import fs from "fs";
 // Storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    let dest = null;
     if (file.mimetype.startsWith("image")) {
-      cb(null, "uploads/images");
+      dest = "uploads/images";
     } else if (file.mimetype.startsWith("video")) {
-      cb(null, "uploads/videos");
-    } 
-    else if (file.mimetype.startsWith("logo")){
-        cb(null, "uploads/logo");
+      dest = "uploads/videos";
+    } else if (file.mimetype.startsWith("logo")) {
+      dest = "uploads/logo";
+    } else {
+      return cb(new Error("Only images and videos are allowed!"), false);
     }
-    else {
-      cb(new Error("Only images and videos are allowed!"), false);
-    }
+    try { fs.mkdirSync(dest, { recursive: true }); } catch {}
+    cb(null, dest);
   },
   filename: function (req, file, cb) {
     const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);

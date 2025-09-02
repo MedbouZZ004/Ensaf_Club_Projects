@@ -7,6 +7,8 @@ import { NavLink } from 'react-router-dom';
 import { MdDashboard, MdMenu, MdClose } from "react-icons/md";
 import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '../store/useAuthStore';
+import { RiUserCommunityFill } from "react-icons/ri";
+
 const SideBar = () => {
   const {logout} = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +16,6 @@ const SideBar = () => {
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('admin'));
-  console.log(user)
   const resizeHandleRef = useRef(null);
 
   const superAdminLinks = [
@@ -39,13 +40,18 @@ const SideBar = () => {
   const adminLinks = [
     {
       name: "Statistics",
-      path: "statistics",
+      path: ".",
       icon: <BsGraphUpArrow />
     },
     {
-      name: "Activities",
-      path: "activities",
+      name: "Club Activities",
+      path: "club-activities",
       icon: <FiActivity />
+    },
+    {
+      name:"Board members",
+      path:"club-board-members",
+      icon:<RiUserCommunityFill />,
     },
     {
       name: "Logout",
