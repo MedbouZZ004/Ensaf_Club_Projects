@@ -670,3 +670,7 @@ export const deleteClub = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const addClub = async (req,res)=>{
+  console.log(req.body);
+}

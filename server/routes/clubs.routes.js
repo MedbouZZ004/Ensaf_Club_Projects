@@ -1,5 +1,5 @@
 import express from 'express';
-import {getAllClubsForHomePage,getClubById,deleteClub,addViews,likeClub,addReview,deleteReview, submitForm } from '../controllers/clubs.controllers.js';
+import {getAllClubsForHomePage,getClubById,deleteClub,addViews,likeClub,addReview,deleteReview, submitForm ,addClub} from '../controllers/clubs.controllers.js';
 //import upload from '../middlewares/upload.js';
 import protectRoute from '../middlewares/protectedRoute.js';
 import attachUserIfAny from '../middlewares/attachUserIfAny.js';
@@ -19,4 +19,5 @@ router.post("/reviews/:id",protectRoute,addReview);
 router.delete("/reviews/:id",protectRoute,deleteReview);
 router.post('/message', protectRoute, formLimiter, submitForm);
 router.delete('/:id', protectedAdminRoute, deleteClub);
+router.post("/:id",protectedAdminRoute,addClub);
 export default router;
