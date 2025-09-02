@@ -672,5 +672,8 @@ export const deleteClub = async (req, res) => {
 };
 
 export const addClub = async (req,res)=>{
-  console.log(req.body);
+  console.log(req.body); 
+
+
+  
 }

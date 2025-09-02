@@ -19,5 +19,5 @@ router.post("/reviews/:id",protectRoute,addReview);
 router.delete("/reviews/:id",protectRoute,deleteReview);
 router.post('/message', protectRoute, formLimiter, submitForm);
 router.delete('/:id', protectedAdminRoute, deleteClub);
-router.post("/:id",protectedAdminRoute,addClub);
+router.post("/",protectedAdminRoute,addClub);
 export default router;
