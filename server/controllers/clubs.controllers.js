@@ -836,4 +836,90 @@ export const addClub = async (req,res)=>{
       message:'internal server error'
     })
   }
-} 
+};
+export const getClubActivities = async (req, res) => {
+  // Ensure admin is authenticated
+  if (!req.admin) {
+    return res.status(401).json({ success: false, message: 'Admin authentication required' });
+  }
+
+  const admin_id = req.admin.admin_id;
+  try {
+    // Get all clubs for this admin
+    const [clubs] = await pool.query('SELECT club_id FROM clubs WHERE admin_id = ?', [admin_id]);
+    if (!clubs || clubs.length === 0) {
+      return res.status(200).json({ success: true, activities: [] });
+    }
+
+    const clubIds = clubs.map(c => c.club_id);
+    // Fetch activities for all club IDs
+    const placeholders = clubIds.map(() => '?').join(',');
+    const [activities] = await pool.query(
+      `SELECT activity_id, name, pitch, activity_date, main_image, club_id FROM activities WHERE club_id IN (${placeholders})`,
+      clubIds
+    );
+
+    // Build absolute URLs for main_image
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const processed = activities.map(a => ({
+      activity_id: a.activity_id,
+      club_id: a.club_id,
+      name: a.name,
+      pitch: a.pitch,
+      activity_date: a.activity_date,
+      main_image: a.main_image
+        ? (a.main_image.startsWith('http://') || a.main_image.startsWith('https://')
+            ? a.main_image
+            : `${baseUrl}/${a.main_image.replace(/^\/+/, '')}`)
+        : null
+    }));
+
+    return res.status(200).json({ success: true, activities: processed });
+  } catch (err) {
+    console.log(`Error in GetClubActivities: ${err.message}`);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+export const getClubBoardMembers = async (req, res) => {
+  // Ensure admin is authenticated
+  if (!req.admin) {
+    return res.status(401).json({ success: false, message: 'Admin authentication required' });
+  }
+
+  const admin_id = req.admin.admin_id;
+  try {
+    // Get club ids for this admin
+    const [clubs] = await pool.query('SELECT club_id FROM clubs WHERE admin_id = ?', [admin_id]);
+    if (!clubs || clubs.length === 0) {
+      return res.status(200).json({ success: true, board_members: [] });
+    }
+
+    const clubIds = clubs.map(c => c.club_id);
+    const placeholders = clubIds.map(() => '?').join(',');
+
+    // Select board members
+    const [members] = await pool.query(
+      `SELECT board_membre_id AS id, fullname, email, image, role, club_id FROM board_membre WHERE club_id IN (${placeholders})`,
+      clubIds
+    );
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const processed = members.map(m => ({
+      id: m.id,
+      fullname: m.fullname,
+      email: m.email,
+      role: m.role,
+      club_id: m.club_id,
+      image: m.image
+        ? (m.image.startsWith('http://') || m.image.startsWith('https://')
+            ? m.image
+            : `${baseUrl}/${m.image.replace(/^\/+/, '')}`)
+        : null
+    }));
+
+    return res.status(200).json({ success: true, board_members: processed });
+  } catch (err) {
+    console.error('Error in getClubBoardMembers:', err.message);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};

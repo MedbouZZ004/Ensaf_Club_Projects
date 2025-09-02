@@ -8,8 +8,7 @@ router.post('/login', logAsAdmin);
 router.post("/signUp",signUpAdmin)
 router.post('/logout', logOutAdmin);
 router.get("/stats",protectedAdminRoute,getStatistics);
-router.get("/activities",protectedAdminRoute,getClubActivities);
-router.get("/boardMembers",protectedAdminRoute,getClubBoardMembers);
+
 
 
 export default router;
