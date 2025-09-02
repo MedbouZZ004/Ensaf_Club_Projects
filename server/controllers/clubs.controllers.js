@@ -61,11 +61,10 @@ export const getAllClubsForHomePage = async (req, res) => {
         club_id: club.club_id,
         name: club.name,
         description: club.description,
-        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}`: null,
+        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}` : null,
         views: club.views,
         likes: club.likes,
         likedByMe: Boolean(club.likedByMe),
-        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}`: null,
         categories: clubCats,
         admin
       };
@@ -837,4 +836,4 @@ export const addClub = async (req,res)=>{
       message:'internal server error'
     })
   }
-}
+} 

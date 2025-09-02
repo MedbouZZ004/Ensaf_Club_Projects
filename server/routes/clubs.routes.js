@@ -1,5 +1,5 @@
 import express from 'express';
-import {getAllClubsForHomePage,getClubById,deleteClub,addViews,likeClub,addReview,deleteReview, submitForm ,addClub} from '../controllers/clubs.controllers.js';
+import {getAllClubsForHomePage,getClubById,deleteClub,addViews,likeClub,addReview,deleteReview, submitForm ,addClub } from '../controllers/clubs.controllers.js';
 import upload from '../middlewares/upload.js';
 import protectRoute from '../middlewares/protectedRoute.js';
 import attachUserIfAny from '../middlewares/attachUserIfAny.js';
@@ -28,5 +28,5 @@ router.post(
 		{ name: 'clubVideo', maxCount: 1 }
 	]),
 	addClub
-);
+); 
 export default router;
