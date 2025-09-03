@@ -1,5 +1,5 @@
 import express from 'express';
-import { logAsAdmin, logOutAdmin ,signUpAdmin,getStatistics,getClubActivities,getClubBoardMembers} from '../controllers/admin.controllers.js';
+import { logAsAdmin, logOutAdmin ,signUpAdmin,getStatistics} from '../controllers/admin.controllers.js';
 import {protectedAdminRoute} from '../middlewares/protectedAdmin.js'
 
 const router = express.Router();
