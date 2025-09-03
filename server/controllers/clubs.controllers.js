@@ -877,7 +877,9 @@ export const getClubActivities = async (req, res) => {
     return res.status(200).json({ success: true, activities: processed });
   } catch (err) {
     console.log(`Error in GetClubActivities: ${err.message}`);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ 
+      success:false,
+      message: 'Internal Server Error' });
   }
 }
 export const getClubBoardMembers = async (req, res) => {

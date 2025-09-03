@@ -9,15 +9,19 @@ const router = express.Router();
 
 
 router.get("/", attachUserIfAny, getAllClubsForHomePage);
-router.get("/:id", attachUserIfAny, getClubById); 
+// More specific GET routes must come before the dynamic '/:id' route
+router.get("/activities", protectedAdminRoute, getClubActivities);
+router.get("/boardMembers", protectedAdminRoute, getClubBoardMembers);
 //router.create("/",upload.array("media",10),createClub);
 
-// A voir wach ndirou protectedRoute or not 
+// A voir wach ndirou protectedRoute or not
 router.post("/like/:id",protectRoute,likeClub);
 router.post("/views/:id",protectRoute,addViews);
 router.post("/reviews/:id",protectRoute,addReview);
 router.delete("/reviews/:id",protectRoute,deleteReview);
 router.post('/message', protectRoute, formLimiter, submitForm);
+// Dynamic GET by id should be after specific GET routes
+router.get("/:id", attachUserIfAny, getClubById);
 router.delete('/:id', protectedAdminRoute, deleteClub);
 router.post(
 	"/",
@@ -30,6 +34,5 @@ router.post(
 	addClub
 );
 
-router.get("/activities",protectedAdminRoute,getClubActivities);
-router.get("/boardMembers",protectedAdminRoute,getClubBoardMembers);
+
 export default router;

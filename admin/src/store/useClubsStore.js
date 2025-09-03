@@ -4,6 +4,8 @@ const useClubsStore = create((set) => ({
   clubs: [],
   loading: false,
   error: null,
+  activities:[],
+  boardMembers:[],
   getClubs: async ()=>{
     try{
         set({loading:true, error:null})
@@ -69,6 +71,47 @@ const useClubsStore = create((set) => ({
         console.error(err);
         toast.error('Error occured while adding club: ' + err.message);
         return {success:false, message:err.message}
+    }
+  },
+  clubActivities: async ()=>{
+    try{
+        set({loading:true, error:null});
+        const res = await fetch('/api/clubs/activities', {
+            method:'GET',
+            headers:{
+                'Content-Type': 'application/json'
+            },
+            credentials:'include'
+        });
+        const data = await res.json();
+        if(!data.success){
+           return set({loading:false, error:data.message || 'Error occured while fetching activities'});
+        }
+        set({loading:false, error:null, activities:data.activities || []});
+    }catch(err){
+        console.error(err);
+        return set({loading:false, error:err.message});
+    }
+  },
+  clubBoardMembers: async ()=>{
+    try{
+        set({loading:true, error:null});
+        const res = await fetch('/api/clubs/boardMembers', {
+            method:'GET',
+            headers:{
+                'Content-Type':'application/json',
+            },
+            credentials:'include'
+        });
+        const data = await res.json();
+        if(!data.success){
+            return set({loading:false, error:data.message});
+        }
+        set({loading:false, error:null, boardMembers:data.board_members || []});
+
+    }catch(err){
+        console.error(err);
+        return set({loading:false, error:err.message});
     }
   }
 }));

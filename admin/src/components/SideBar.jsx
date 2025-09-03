@@ -8,7 +8,7 @@ import { MdDashboard, MdMenu, MdClose } from "react-icons/md";
 import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '../store/useAuthStore';
 import { RiUserCommunityFill } from "react-icons/ri";
-
+import {FaUser} from 'react-icons/fa';
 const SideBar = () => {
   const {logout} = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
@@ -42,6 +42,11 @@ const SideBar = () => {
       name: "Statistics",
       path: ".",
       icon: <BsGraphUpArrow />
+    },
+    {
+      name: "Admin Profile",
+      path: "admin-profile",
+      icon: <FaUser />
     },
     {
       name: "Club Activities",
