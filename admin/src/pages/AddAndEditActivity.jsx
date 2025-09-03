@@ -103,7 +103,7 @@ const AddAndEditActivity = () => {
                 <select 
                   onChange={(e) => setNumberOfImagesSelected(parseInt(e.target.value) || 0)} 
                   id='image-count'
-                  className='w-full px-4 py-2 border border-orange-400 rounded-lg  focus:border-2 focus:border-orange-400 transition-colors duration-200'
+                  className='w-full outline-none px-4 py-2 border border-orange-400 rounded-lg  focus:border-2 focus:border-orange-400 transition-colors duration-200'
                 >
                   <option value="">Select number of images</option>
                   {numberOfImages.map((numberOfImage) => (
