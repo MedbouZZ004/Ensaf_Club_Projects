@@ -924,4 +924,142 @@ export const getClubBoardMembers = async (req, res) => {
     console.error('Error in getClubBoardMembers:', err.message);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
+}; 
+
+// Delete activity && board membre controllers 
+export const deleteAnActivity = async (req,res)=>{ 
+  const connection = await pool.getConnection();
+  try {
+    const activity_id = req.params.id;
+
+    // Start transaction
+    await connection.query('START TRANSACTION');
+
+    // Check the existence of the activity
+    const [activityRows] = await connection.query('SELECT * FROM activities WHERE activity_id = ?', [activity_id]);
+    if (activityRows.length === 0) {
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ message: 'Activity not found.' });
+    }
+
+    const activity = activityRows[0];
+
+    // Collect file paths to delete: main_image + images from activities_images
+    const filesToDelete = [];
+    if (activity.main_image) filesToDelete.push(activity.main_image);
+
+    // activities_images may or may not exist
+    const [activityImageRows] = await connection.query("SELECT images FROM activities_images WHERE activity_id = ?", [activity_id]).catch(() => [ [] ]);
+    if (Array.isArray(activityImageRows)) {
+      for (const r of activityImageRows) {
+        if (r && r.images) filesToDelete.push(r.images);
+      }
+    }
+
+    // Prepare uploads root
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const uploadsRoot = path.join(serverDir, '..', 'uploads');
+    const unlinkErrors = [];
+
+    for (const mediaPath of filesToDelete) {
+      try {
+        if (!mediaPath) continue;
+        // skip external urls
+        if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) continue;
+        const clean = mediaPath.replace(/^\/+/, '');
+        let fullPath;
+        if (clean.startsWith('uploads' + path.sep) || clean.startsWith('uploads/')) {
+          fullPath = path.join(serverDir, '..', clean);
+        } else {
+          fullPath = path.join(uploadsRoot, clean);
+        }
+        const normalized = path.normalize(fullPath);
+        if (!normalized.startsWith(path.normalize(uploadsRoot))) {
+          // suspicious path, skip
+          continue;
+        }
+        await fs.unlink(normalized).catch(err => {
+          if (err.code !== 'ENOENT') unlinkErrors.push({ path: normalized, error: err.message });
+        });
+      } catch (err) {
+        unlinkErrors.push({ path: mediaPath, error: err.message });
+      }
+    }
+
+    // Delete DB rows
+    // Delete activity images rows if table exists
+    await connection.query("DELETE FROM activities_images WHERE activity_id = ?", [activity_id]).catch(() => {});
+
+    // Delete activity
+    await connection.query("DELETE FROM activities WHERE activity_id = ?", [activity_id]);
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    return res.status(200).json({ success: true, message: 'Activity deleted', deletedFilesCount: filesToDelete.length, unlinkErrors });
+  } catch (err) {
+    console.error('Error deleting activity:', err.message);
+    await connection.query('ROLLBACK').catch(() => {});
+    try { connection.release(); } catch {}
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const deleteAnBoardMember = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const boardMemberId = req.params.id;
+
+    await connection.query('START TRANSACTION');
+
+    const [rows] = await connection.query('SELECT * FROM board_membre WHERE board_membre_id = ?', [boardMemberId]);
+    if (!rows || rows.length === 0) {
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ message: 'Board member not found.' });
+    }
+
+    const member = rows[0];
+    const filesToDelete = [];
+    if (member.image) filesToDelete.push(member.image);
+
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const uploadsRoot = path.join(serverDir, '..', 'uploads');
+    const unlinkErrors = [];
+    let deletedFilesCount = 0;
+
+    for (const mediaPath of filesToDelete) {
+      try {
+        if (!mediaPath) continue;
+        if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) continue;
+        const clean = mediaPath.replace(/^\/+/, '');
+        let fullPath;
+        if (clean.startsWith('uploads' + path.sep) || clean.startsWith('uploads/')) {
+          fullPath = path.join(serverDir, '..', clean);
+        } else {
+          fullPath = path.join(uploadsRoot, clean);
+        }
+        const normalized = path.normalize(fullPath);
+        if (!normalized.startsWith(path.normalize(uploadsRoot))) continue;
+        await fs.unlink(normalized).then(() => { deletedFilesCount += 1; }).catch(err => {
+          if (err.code !== 'ENOENT') unlinkErrors.push({ path: normalized, error: err.message });
+        });
+      } catch (err) {
+        unlinkErrors.push({ path: mediaPath, error: err.message });
+      }
+    }
+
+    await connection.query('DELETE FROM board_membre WHERE board_membre_id = ?', [boardMemberId]);
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    return res.status(200).json({ success: true, message: 'Board member deleted', deletedFilesCount, unlinkErrors });
+  } catch (err) {
+    console.error('Error deleting board member:', err.message);
+    await connection.query('ROLLBACK').catch(() => {});
+    try { connection.release(); } catch {}
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 };
