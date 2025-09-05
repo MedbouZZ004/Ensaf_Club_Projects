@@ -1,7 +1,11 @@
 import React from 'react'
 import { FaEye, FaEdit, FaTrash } from 'react-icons/fa'
-
+import { useNavigate } from 'react-router-dom'
+import useClubsStore from '../store/useClubsStore'
 const BoardMemberCard = ({ boardMember }) => {
+  const {deleteBoardMember} = useClubsStore();
+  const navigate = useNavigate();
+
   return (
     <div className='flex flex-col overflow-hidden  bg-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl border-2 border-orange-400'>
       <div className='relative'>
@@ -28,13 +32,12 @@ const BoardMemberCard = ({ boardMember }) => {
         
         <div className='mt-auto flex justify-between items-center pt-3 border-t border-gray-100'>
           <div className='flex space-x-2'>
-            <button title='View Member' className='p-2 rounded-full bg-orange-100 text-orange-600 cursor-pointer hover:text-white hover:bg-orange-500 transition-colors duration-200'>
-              <FaEye className='text-sm' />
-            </button>
-            <button title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
+            <button onClick={()=> navigate(`/club-board-members/add-board-member?memberId=${boardMember.id}`)} title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
               <FaEdit className='text-sm' />
             </button>
-            <button title='Delete Member' className='p-2 rounded-full bg-red-100 text-red-600 cursor-pointer hover:bg-red-500 hover:text-white transition-colors duration-200'>
+            <button 
+            onClick={()=> deleteBoardMember(boardMember.id)}
+            title='Delete Member' className='p-2 rounded-full bg-red-100 text-red-600 cursor-pointer hover:bg-red-500 hover:text-white transition-colors duration-200'>
               <FaTrash className='text-sm' />
             </button>
           </div>

@@ -13,9 +13,10 @@ import AddAndEditActivity from "./pages/AddAndEditActivity"
 import ClubActivitiesLayout from "./components/ClubActivitiesLayout"
 import ClubBoardMembersLayout from "./components/ClubBoardMembersLayout"
 import AddAndEditBoardMember from "./pages/AddAndEditBoardMember"
-import AdminProfile from "./pages/AdminProfile"
+import AdminProfile from "./pages/AdminProfile";
+import ActivityDetails from "./pages/ActivityDetails"
 function App() {
-  const userRole = JSON.parse(localStorage.getItem('admin')).role; 
+  const userRole = JSON.parse(localStorage.getItem('admin'))?.role; 
   return (
     <Routes>
       <Route path="/" element={
@@ -38,7 +39,8 @@ function App() {
         <Route path="admin-profile" element={<AdminProfile />} />
         <Route path="club-activities" element={<ClubActivitiesLayout />} >
           <Route index element={<ClubActivities />} />
-          <Route  path="add-activity" element={<AddAndEditActivity/>} />
+          <Route  path="add-edit-activity" element={<AddAndEditActivity/>} />
+          <Route path="details/:activityId" element={<ActivityDetails/>} />
         </Route>
         <Route path="club-board-members" element={<ClubBoardMembersLayout />} >
           <Route index  element={<ClubBoardMembers />} />

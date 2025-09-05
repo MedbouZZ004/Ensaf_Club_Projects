@@ -9,7 +9,6 @@ import bcrypt from 'bcryptjs';
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
   try {
-    const PORT = process.env.PORT || 5000;
     const baseUrl = `${req.protocol}://${req.get("host")}`;
 
     // Fetch all clubs + admin info + per-user like status
@@ -61,7 +60,7 @@ export const getAllClubsForHomePage = async (req, res) => {
         club_id: club.club_id,
         name: club.name,
         description: club.description,
-        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}` : null,
+        logo: club.logo ? `${baseUrl}/${club.logo.replace(/^\/+/, "")}`: null,
         views: club.views,
         likes: club.likes,
         likedByMe: Boolean(club.likedByMe),
@@ -852,27 +851,46 @@ export const getClubActivities = async (req, res) => {
     }
 
     const clubIds = clubs.map(c => c.club_id);
-    // Fetch activities for all club IDs
+    // Fetch activities for all club IDs with aggregated images
     const placeholders = clubIds.map(() => '?').join(',');
     const [activities] = await pool.query(
-      `SELECT activity_id, name, pitch, activity_date, main_image, club_id FROM activities WHERE club_id IN (${placeholders})`,
+      `SELECT 
+         a.activity_id, a.name, a.pitch, a.activity_date, a.main_image, a.club_id,
+         COALESCE(JSON_ARRAYAGG(ai.images), JSON_ARRAY()) AS activity_images
+       FROM activities a
+       LEFT JOIN activities_images ai ON ai.activity_id = a.activity_id
+       WHERE a.club_id IN (${placeholders})
+       GROUP BY a.activity_id, a.name, a.pitch, a.activity_date, a.main_image, a.club_id`,
       clubIds
     );
 
-    // Build absolute URLs for main_image
+    // Build absolute URLs for main and gallery images
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const processed = activities.map(a => ({
-      activity_id: a.activity_id,
-      club_id: a.club_id,
-      name: a.name,
-      pitch: a.pitch,
-      activity_date: a.activity_date,
-      main_image: a.main_image
-        ? (a.main_image.startsWith('http://') || a.main_image.startsWith('https://')
-            ? a.main_image
-            : `${baseUrl}/${a.main_image.replace(/^\/+/, '')}`)
-        : null
-    }));
+    const toAbs = (p) => {
+      if (!p) return null;
+      if (p.startsWith('http://') || p.startsWith('https://')) return p;
+      return `${baseUrl}/${p.replace(/^\/+/, '')}`;
+    };
+    const processed = activities.map(a => {
+      // activity_images may arrive as JSON string or array depending on driver
+      let imgs = [];
+      if (Array.isArray(a.activity_images)) {
+        imgs = a.activity_images;
+      } else if (typeof a.activity_images === 'string') {
+        try { imgs = JSON.parse(a.activity_images) || []; } catch { imgs = []; }
+      }
+      // Filter out null entries that can appear from LEFT JOIN aggregation
+      const cleanImgs = imgs.filter(Boolean).map((img) => toAbs(String(img)));
+      return {
+        activity_id: a.activity_id,
+        club_id: a.club_id,
+        name: a.name,
+        pitch: a.pitch,
+        activity_date: a.activity_date,
+        main_image: a.main_image ? toAbs(a.main_image) : null,
+        activity_images: cleanImgs
+      };
+    });
 
     return res.status(200).json({ success: true, activities: processed });
   } catch (err) {
@@ -935,17 +953,17 @@ export const deleteAnActivity = async (req,res)=>{
     // Start transaction
     await connection.query('START TRANSACTION');
 
-    // Check the existence of the activity
     const [activityRows] = await connection.query('SELECT * FROM activities WHERE activity_id = ?', [activity_id]);
     if (activityRows.length === 0) {
       await connection.query('ROLLBACK');
       connection.release();
-      return res.status(404).json({ message: 'Activity not found.' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Activity not found.' });
     }
 
     const activity = activityRows[0];
 
-    // Collect file paths to delete: main_image + images from activities_images
     const filesToDelete = [];
     if (activity.main_image) filesToDelete.push(activity.main_image);
 
@@ -960,7 +978,9 @@ export const deleteAnActivity = async (req,res)=>{
     // Prepare uploads root
     const serverDir = path.dirname(fileURLToPath(import.meta.url));
     const uploadsRoot = path.join(serverDir, '..', 'uploads');
-    const unlinkErrors = [];
+  const unlinkErrors = [];
+  let activityDirDeleted = false;
+  let activityDirPath = null;
 
     for (const mediaPath of filesToDelete) {
       try {
@@ -982,12 +1002,46 @@ export const deleteAnActivity = async (req,res)=>{
         await fs.unlink(normalized).catch(err => {
           if (err.code !== 'ENOENT') unlinkErrors.push({ path: normalized, error: err.message });
         });
+        // capture candidate folder from first valid media path
+        if (!activityDirPath) {
+          const candidate = path.dirname(normalized);
+          try {
+            const parent = path.basename(path.dirname(candidate));
+            // ensure we only delete a folder directly under 'activities'
+            if (parent === 'activities') activityDirPath = candidate;
+          } catch {}
+        }
       } catch (err) {
         unlinkErrors.push({ path: mediaPath, error: err.message });
       }
     }
 
-    // Delete DB rows
+    // Attempt to delete the entire activity folder (safe-guarded)
+    try {
+      if (!activityDirPath && filesToDelete.length > 0) {
+        // Fallback compute from the first media path if any
+        const mediaPath = filesToDelete[0];
+        if (mediaPath && !(mediaPath.startsWith('http://') || mediaPath.startsWith('https://'))) {
+          const clean = mediaPath.replace(/^\/+/, '');
+          const full = clean.startsWith('uploads' + path.sep) || clean.startsWith('uploads/')
+            ? path.join(serverDir, '..', clean)
+            : path.join(uploadsRoot, clean);
+          const normalized = path.normalize(full);
+          if (normalized.startsWith(path.normalize(uploadsRoot))) {
+            const candidate = path.dirname(normalized);
+            const parent = path.basename(path.dirname(candidate));
+            if (parent === 'activities') activityDirPath = candidate;
+          }
+        }
+      }
+      if (activityDirPath) {
+        await fs.rm(activityDirPath, { recursive: true, force: true });
+        activityDirDeleted = true;
+      }
+    } catch (err) {
+      unlinkErrors.push({ path: activityDirPath || 'unknown_activity_dir', error: err.message });
+    }
+
     // Delete activity images rows if table exists
     await connection.query("DELETE FROM activities_images WHERE activity_id = ?", [activity_id]).catch(() => {});
 
@@ -997,12 +1051,14 @@ export const deleteAnActivity = async (req,res)=>{
     await connection.query('COMMIT');
     connection.release();
 
-    return res.status(200).json({ success: true, message: 'Activity deleted', deletedFilesCount: filesToDelete.length, unlinkErrors });
+  return res.status(200).json({ success: true, message: 'Activity deleted', deletedFilesCount: filesToDelete.length, activityDirDeleted, activityDirPath, unlinkErrors });
   } catch (err) {
     console.error('Error deleting activity:', err.message);
     await connection.query('ROLLBACK').catch(() => {});
     try { connection.release(); } catch {}
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({
+      sccess:false, 
+      message: 'Internal Server Error' });
   }
 };
 
@@ -1017,7 +1073,9 @@ export const deleteAnBoardMember = async (req, res) => {
     if (!rows || rows.length === 0) {
       await connection.query('ROLLBACK');
       connection.release();
-      return res.status(404).json({ message: 'Board member not found.' });
+      return res.status(404).json({ 
+        success:false,
+        message: 'Board member not found.' });
     }
 
     const member = rows[0];
@@ -1060,6 +1118,473 @@ export const deleteAnBoardMember = async (req, res) => {
     console.error('Error deleting board member:', err.message);
     await connection.query('ROLLBACK').catch(() => {});
     try { connection.release(); } catch {}
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ 
+      success:false,
+      message: 'Internal Server Error' });
   }
 };
+
+export const addActivity = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    // Validate auth
+    const admin = req.admin;
+    if (!admin) {
+      connection.release();
+      return res.status(401).json({ success: false, message: 'Admin authentication required' });
+    }
+
+    let { activityName, activityPitch, activityDate, clubId } = req.body;
+    activityName = String(activityName || '').trim();
+    activityPitch = String(activityPitch || '').trim();
+    activityDate = String(activityDate || '').trim();
+
+    // If clubId not provided, try infer from admin (must be exactly one club)
+    if (!clubId) {
+      const [adminClubs] = await connection.query('SELECT club_id FROM clubs WHERE admin_id = ?', [admin.admin_id]);
+      if (!adminClubs || adminClubs.length !== 1) {
+        connection.release();
+        return res.status(400).json({ success: false, message: 'clubId is required' });
+      }
+      clubId = adminClubs[0].club_id;
+    }
+
+    if (!activityName || !activityPitch || !activityDate || !clubId) {
+      connection.release();
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    await connection.query('START TRANSACTION');
+
+    // Ensure club exists and get its name
+    const [clubs] = await connection.query('SELECT name FROM clubs WHERE club_id = ?', [clubId]);
+    if (clubs.length === 0) {
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ success: false, message: 'Club not found' });
+    }
+    const clubName = clubs[0].name || `club_${clubId}`;
+
+    // Sanitize folder names
+    const sanitize = (str) => String(str || '')
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .slice(0, 60);
+
+    const sanitizedClubName = sanitize(clubName) || `club-${clubId}`;
+    const activitySlug = sanitize(activityName) || `activity-${Date.now()}`;
+
+    // Prepare folders
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const baseRoot = path.join(serverDir, '..');
+    const uploadsRoot = path.join(baseRoot, 'uploads');
+    const activityDir = path.join(uploadsRoot, sanitizedClubName, 'activities', activitySlug);
+    await fs.mkdir(activityDir, { recursive: true });
+
+    // Collect files from multer
+    const filesArr = Array.isArray(req.files) ? req.files : [];
+    const mainFile = filesArr.find(f => f.fieldname === 'mainImage');
+    const galleryFiles = filesArr
+      .filter(f => /^activityImage\d+$/.test(String(f.fieldname || '')))
+      .sort((a, b) => {
+        const ai = parseInt(String(a.fieldname).replace('activityImage', ''), 10) || 0;
+        const bi = parseInt(String(b.fieldname).replace('activityImage', ''), 10) || 0;
+        return ai - bi;
+      });
+
+    // Move files into activity folder and build DB paths
+    const toDbPath = (absPath) => '/' + path.relative(baseRoot, absPath).replace(/\\/g, '/');
+    let mainImageDbPath = '';
+    if (mainFile) {
+      const mainExt = path.extname(mainFile.originalname || mainFile.filename || '') || path.extname(mainFile.filename);
+      const src = path.join(baseRoot, mainFile.destination, mainFile.filename);
+      const dest = path.join(activityDir, `main${mainExt}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+      mainImageDbPath = toDbPath(dest);
+    }
+
+    const imageDbPaths = [];
+    for (let i = 0; i < galleryFiles.length; i++) {
+      const f = galleryFiles[i];
+      const ext = path.extname(f.originalname || f.filename || '') || path.extname(f.filename);
+      const src = path.join(baseRoot, f.destination, f.filename);
+      const dest = path.join(activityDir, `image${i + 1}${ext}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+      imageDbPaths.push(toDbPath(dest));
+    }
+
+    // Insert activity
+    const [actInsert] = await connection.query(
+      'INSERT INTO activities (name, pitch, activity_date, club_id, main_image) VALUES (?, ?, ?, ?, ?)',
+      [activityName, activityPitch, activityDate, clubId, mainImageDbPath]
+    );
+    const activityId = actInsert.insertId;
+
+    for (const imgPath of imageDbPaths) {
+      await connection.query('INSERT INTO activities_images (images, activity_id) VALUES (?, ?)', [imgPath, activityId]);
+    }
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    // Build absolute URLs for response
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const toAbs = (p) => (!p ? null : (p.startsWith('http') ? p : `${baseUrl}/${p.replace(/^\/+/, '')}`));
+
+    return res.status(201).json({
+      success: true,
+      message: 'Activity added successfully',
+      activity: {
+        activity_id: activityId,
+        club_id: Number(clubId),
+        name: activityName,
+        pitch: activityPitch,
+        activity_date: activityDate,
+        main_image: toAbs(mainImageDbPath),
+        activity_images: imageDbPaths.map(toAbs)
+      }
+    });
+  } catch (err) {
+    console.error('Error adding activity:', err);
+    try { await connection.query('ROLLBACK'); } catch {}
+    try { connection.release(); } catch {}
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+export const addBoardMember = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const admin = req.admin;
+    if (!admin) {
+      connection.release();
+      return res.status(401).json({ success: false, message: 'Admin authentication required' });
+    }
+
+    let { fullName, email = null, role, clubId } = req.body;
+    fullName = String(fullName || '').trim();
+    role = String(role || req.body.position || '').trim();
+
+    if (!clubId) {
+      const [adminClubs] = await connection.query('SELECT club_id FROM clubs WHERE admin_id = ?', [admin.admin_id]);
+      if (!adminClubs || adminClubs.length !== 1) {
+        connection.release();
+        return res.status(400).json({ success: false, message: 'clubId is required' });
+      }
+      clubId = adminClubs[0].club_id;
+    }
+
+    if (!fullName || !role || !clubId) {
+      connection.release();
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    }
+
+    await connection.query('START TRANSACTION');
+
+    const [clubs] = await connection.query('SELECT name FROM clubs WHERE club_id = ?', [clubId]);
+    if (clubs.length === 0) {
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ success: false, message: 'Club not found' });
+    }
+    const clubName = clubs[0].name;
+
+    const sanitize = (str) => String(str || '')
+      .normalize('NFKD')
+      .replace(/[^a-zA-Z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .slice(0, 60);
+
+    const sanitizedClubName = sanitize(clubName) || `club-${clubId}`;
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const baseRoot = path.join(serverDir, '..');
+    const uploadsRoot = path.join(baseRoot, 'uploads');
+    const boardDir = path.join(uploadsRoot, sanitizedClubName, 'board');
+    await fs.mkdir(boardDir, { recursive: true });
+
+    const filesArr = Array.isArray(req.files) ? req.files : [];
+    const imageFile = filesArr.find(f => (f.fieldname === 'image' || f.fieldname === 'boardImage' || f.fieldname === 'boardMemberImage'));
+
+    let imageDbPath = null;
+    if (imageFile) {
+      const ext = path.extname(imageFile.originalname || imageFile.filename || '') || path.extname(imageFile.filename);
+      const safeName = sanitize(fullName) || 'member';
+      const src = path.join(baseRoot, imageFile.destination, imageFile.filename);
+      const dest = path.join(boardDir, `${safeName}${ext}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+      imageDbPath = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+    }
+
+    const [insert] = await connection.query(
+      'INSERT INTO board_membre (fullname, email, image, role, club_id) VALUES (?, ?, ?, ?, ?)',
+      [fullName, email || null, imageDbPath, role, clubId]
+    );
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const toAbs = (p) => (!p ? null : (p.startsWith('http') ? p : `${baseUrl}/${p.replace(/^\/+/, '')}`));
+
+    return res.status(201).json({
+      success: true,
+      message: 'Board member added successfully',
+      member: {
+        id: insert.insertId,
+        fullname: fullName,
+        email: email || null,
+        role,
+        club_id: Number(clubId),
+        image: toAbs(imageDbPath)
+      }
+    });
+  } catch (err) {
+    console.error('Error adding board member:', err);
+    try { await connection.query('ROLLBACK'); } catch {}
+    try { connection.release(); } catch {}
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+}
+
+// Update an activity (text fields, optional main image & gallery replacement)
+export const updateActivity = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const admin = req.admin;
+    if (!admin) {
+      connection.release();
+      return res.status(401).json({ success: false, message: 'Admin authentication required' });
+    }
+    const activityId = parseInt(req.params.id, 10);
+    if (!activityId) {
+      connection.release();
+      return res.status(400).json({ success: false, message: 'Invalid activity id' });
+    }
+
+    let { activityName, activityPitch, activityDate } = req.body;
+    activityName = typeof activityName === 'string' ? activityName.trim() : undefined;
+    activityPitch = typeof activityPitch === 'string' ? activityPitch.trim() : undefined;
+    activityDate = typeof activityDate === 'string' ? activityDate.trim() : undefined;
+
+    await connection.query('START TRANSACTION');
+    const [rows] = await connection.query(
+      'SELECT a.activity_id, a.club_id, a.name, a.main_image, c.name AS club_name FROM activities a JOIN clubs c ON a.club_id = c.club_id WHERE a.activity_id = ?',
+      [activityId]
+    );
+    if (!rows.length){
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ success:false, message:'Activity not found' });
+    }
+    const activity = rows[0];
+
+    // Update scalar fields if provided
+    if (activityName || activityPitch || activityDate){
+      const sets = [];
+      const vals = [];
+      if (activityName !== undefined){ sets.push('name = ?'); vals.push(activityName); }
+      if (activityPitch !== undefined){ sets.push('pitch = ?'); vals.push(activityPitch); }
+      if (activityDate !== undefined){ sets.push('activity_date = ?'); vals.push(activityDate); }
+      if (sets.length){
+        vals.push(activityId);
+        await connection.query(`UPDATE activities SET ${sets.join(', ')} WHERE activity_id = ?`, vals);
+      }
+    }
+
+    // Handle optional image replacements
+    const filesArr = Array.isArray(req.files) ? req.files : [];
+    const mainFile = filesArr.find(f => f.fieldname === 'mainImage');
+    const galleryFiles = filesArr.filter(f => /^activityImage\d+$/.test(String(f.fieldname || '')));
+
+  if (mainFile || galleryFiles.length){
+      const sanitize = (str) => String(str || '')
+        .normalize('NFKD')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .slice(0, 60);
+      const serverDir = path.dirname(fileURLToPath(import.meta.url));
+      const baseRoot = path.join(serverDir, '..');
+      const uploadsRoot = path.join(baseRoot, 'uploads');
+  const clubSlug = sanitize(activity.club_name) || `club-${activity.club_id}`;
+  const oldSlug = sanitize(activity.name) || `activity-${activity.activity_id}`;
+  const newSlug = sanitize(activityName || activity.name) || `activity-${activity.activity_id}`;
+  const oldDir = path.join(uploadsRoot, clubSlug, 'activities', oldSlug);
+  const activityDir = path.join(uploadsRoot, clubSlug, 'activities', newSlug);
+      await fs.mkdir(activityDir, { recursive: true });
+      const toDbPath = (absPath) => '/' + path.relative(baseRoot, absPath).replace(/\\/g, '/');
+
+      if (mainFile){
+        // Remove existing main.* file in target folder before writing new
+        try {
+          const entries = await fs.readdir(activityDir);
+          await Promise.all(entries.filter(n => /^main\.[a-z0-9]+$/i.test(n)).map(n => fs.unlink(path.join(activityDir, n)).catch(() => {})));
+        } catch {}
+        const src = path.join(baseRoot, mainFile.destination, mainFile.filename);
+        const ext = path.extname(mainFile.originalname || mainFile.filename || '') || path.extname(mainFile.filename);
+        const dest = path.join(activityDir, `main${ext}`);
+        await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+        const dbp = toDbPath(dest);
+        await connection.query('UPDATE activities SET main_image = ? WHERE activity_id = ?', [dbp, activityId]);
+      }
+
+      if (galleryFiles.length){
+        await connection.query('DELETE FROM activities_images WHERE activity_id = ?', [activityId]);
+        try {
+          const entries = await fs.readdir(activityDir);
+          await Promise.all(entries.filter(n => /image\d+\./i.test(n)).map(n => fs.unlink(path.join(activityDir, n)).catch(() => {})));
+        } catch {}
+        const sorted = galleryFiles.sort((a,b)=>{
+          const ai = parseInt(String(a.fieldname).replace('activityImage',''),10)||0;
+          const bi = parseInt(String(b.fieldname).replace('activityImage',''),10)||0;
+          return ai-bi;
+        });
+        let i=0;
+        for (const f of sorted){
+          const src = path.join(baseRoot, f.destination, f.filename);
+          const ext = path.extname(f.originalname || f.filename || '') || path.extname(f.filename);
+          const dest = path.join(activityDir, `image${++i}${ext}`);
+          await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+          await connection.query('INSERT INTO activities_images (images, activity_id) VALUES (?, ?)', [toDbPath(dest), activityId]);
+        }
+      }
+
+      // If the slug changed and we uploaded new files, remove the old directory to avoid leftovers
+      if (oldDir !== activityDir) {
+        try { await fs.rm(oldDir, { recursive: true, force: true }); } catch {}
+      }
+    }
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    // Return updated activity
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const toAbs = (p) => (!p ? null : (p.startsWith('http') ? p : `${baseUrl}/${p.replace(/^\/+/,'')}`));
+    const [[updated]] = await pool.query(
+      `SELECT a.activity_id, a.club_id, a.name, a.pitch, a.activity_date, a.main_image,
+              COALESCE(JSON_ARRAYAGG(ai.images), JSON_ARRAY()) AS activity_images
+       FROM activities a
+       LEFT JOIN activities_images ai ON a.activity_id = ai.activity_id
+       WHERE a.activity_id = ?`, [activityId]
+    );
+    let imgs=[]; try{ imgs = JSON.parse(updated.activity_images)||[] }catch{ imgs=[] }
+    return res.json({ success:true, message:'Activity updated successfully', activity:{
+      activity_id: updated.activity_id,
+      club_id: updated.club_id,
+      name: updated.name,
+      pitch: updated.pitch,
+      activity_date: updated.activity_date,
+      main_image: toAbs(updated.main_image),
+      activity_images: imgs.map(toAbs)
+    }});
+  } catch (err) {
+    console.error('Error updating activity:', err);
+    try { await connection.query('ROLLBACK'); } catch {}
+    try { connection.release(); } catch {}
+    return res.status(500).json({ success:false, message:'Internal Server Error' });
+  }
+}
+
+// Update board member (text fields and optional image)
+export const updateBoardMember = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const admin = req.admin;
+    if (!admin) {
+      connection.release();
+      return res.status(401).json({ success: false, message: 'Admin authentication required' });
+    }
+    const memberId = parseInt(req.params.id, 10);
+    if (!memberId){
+      connection.release();
+      return res.status(400).json({ success:false, message:'Invalid member id' });
+    }
+
+    let { fullName, email = null, role } = req.body;
+    fullName = typeof fullName === 'string' ? fullName.trim() : undefined;
+    role = typeof role === 'string' ? role.trim() : (typeof req.body.position === 'string' ? req.body.position.trim() : undefined);
+
+    await connection.query('START TRANSACTION');
+    const [rows] = await connection.query(
+      'SELECT bm.board_membre_id as id, bm.fullname, bm.email, bm.image, bm.role, bm.club_id, c.name as club_name FROM board_membre bm JOIN clubs c ON bm.club_id = c.club_id WHERE bm.board_membre_id = ?',
+      [memberId]
+    );
+    if (!rows.length){
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ success:false, message:'Board member not found' });
+    }
+    const current = rows[0];
+
+    if (fullName !== undefined || email !== undefined || role !== undefined){
+      const sets=[]; const vals=[];
+      if (fullName !== undefined){ sets.push('fullname = ?'); vals.push(fullName); }
+      if (email !== undefined){ sets.push('email = ?'); vals.push(email || null); }
+      if (role !== undefined){ sets.push('role = ?'); vals.push(role); }
+      if (sets.length){ vals.push(memberId); await connection.query(`UPDATE board_membre SET ${sets.join(', ')} WHERE board_membre_id = ?`, vals); }
+    }
+
+    const filesArr = Array.isArray(req.files) ? req.files : [];
+    const imageFile = filesArr.find(f => (f.fieldname === 'image' || f.fieldname === 'boardImage' || f.fieldname === 'boardMemberImage'));
+    if (imageFile){
+      // Remove previous image file when replacing (only for local uploads)
+      try {
+        const prev = current.image;
+        if (prev && !(prev.startsWith('http://') || prev.startsWith('https://'))){
+          const serverDir = path.dirname(fileURLToPath(import.meta.url));
+          const baseRoot = path.join(serverDir, '..');
+          const clean = prev.replace(/^\/+/,'');
+          const full = clean.startsWith('uploads/') || clean.startsWith('uploads\\') ? path.join(baseRoot, clean) : path.join(baseRoot, 'uploads', clean);
+          const normalized = path.normalize(full);
+          const uploadsRoot = path.join(baseRoot, 'uploads');
+          if (normalized.startsWith(path.normalize(uploadsRoot))) {
+            await fs.unlink(normalized).catch(() => {});
+          }
+        }
+      } catch {}
+      const sanitize = (str) => String(str || '')
+        .normalize('NFKD')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .slice(0, 60);
+      const serverDir = path.dirname(fileURLToPath(import.meta.url));
+      const baseRoot = path.join(serverDir, '..');
+      const uploadsRoot = path.join(baseRoot, 'uploads');
+      const clubSlug = sanitize(current.club_name) || `club-${current.club_id}`;
+      const memberSlug = sanitize(fullName || current.fullname) || `member-${memberId}`;
+      const boardDir = path.join(uploadsRoot, clubSlug, 'board');
+      await fs.mkdir(boardDir, { recursive: true });
+      const src = path.join(baseRoot, imageFile.destination, imageFile.filename);
+      const ext = path.extname(imageFile.originalname || imageFile.filename || '') || path.extname(imageFile.filename);
+      const dest = path.join(boardDir, `${memberSlug}${ext}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
+      const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+      await connection.query('UPDATE board_membre SET image = ? WHERE board_membre_id = ?', [dbp, memberId]);
+    }
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const toAbs = (p) => (!p ? null : (p.startsWith('http') ? p : `${baseUrl}/${p.replace(/^\/+/,'')}`));
+    const [[updated]] = await pool.query('SELECT board_membre_id as id, fullname, email, image, role, club_id FROM board_membre WHERE board_membre_id = ?', [memberId]);
+    return res.json({ success:true, message:'Board member updated successfully', member: {
+      id: updated.id,
+      fullname: updated.fullname,
+      email: updated.email,
+      role: updated.role,
+      club_id: updated.club_id,
+      image: toAbs(updated.image)
+    }});
+  } catch (err){
+    console.error('Error updating board member:', err);
+    try { await connection.query('ROLLBACK'); } catch {}
+    try { connection.release(); } catch {}
+    return res.status(500).json({ success:false, message:'Internal Server Error' });
+  }
+}

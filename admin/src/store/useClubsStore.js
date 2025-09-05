@@ -113,7 +113,148 @@ const useClubsStore = create((set) => ({
         console.error(err);
         return set({loading:false, error:err.message});
     }
-  }
+  },
+  deleteActivity: async(activityId)=>{
+    try{
+        const res = await fetch(`/api/clubs/activities/${activityId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if(!data.success){
+            toast.error(data.message);
+            return;
+        }
+        set((state) => ({
+            activities: state.activities.filter((activity) => activity.activity_id !== activityId)
+        }));
+        toast.success("Activity deleted successfully");
+    }catch(err){
+        console.error(err);
+        toast.error('Error occured while deleting activity: ' + err.message);
+        return;
+    }
+  },
+  deleteBoardMember: async(memberId)=>{
+    try{
+        const res = await fetch(`/api/clubs/boardMembers/${memberId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        const data = await res.json();
+        if(!data.success){
+            toast.error(data.message);
+            return;
+        }
+        set((state) => ({
+            boardMembers: state.boardMembers.filter((member) => member.id !== memberId)
+        }));
+        toast.success("Board member deleted successfully");
+    }catch(err){
+        console.error(err);
+        toast.error('Error occured while deleting board member: ' + err.message);
+        return;
+    }
+  },
+  addBoardMember: async(formData)=>{
+    try{
+        const res = await fetch(`/api/clubs/boardMembers`, {
+            method:'POST',
+            credentials:'include',
+            body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+        if(!res.ok || data.success === false){
+            toast.error(data.message || 'Failed to add board member');
+            return {success:false, message: data.message || 'Failed to add board member'};
+        }
+                toast.success('Board member added successfully');
+                // Optimistically add to state so list updates without refetch
+                if (data.member) {
+                    set((state) => ({ boardMembers: [data.member, ...state.boardMembers] }));
+                }
+                return {success:true, member: data.member};
+    }catch(err){
+        console.error(err);
+        toast.error('Error occured while adding board member: ' + err.message);
+        return {success:false, message: err.message};
+    }
+  },
+    updateBoardMember: async(memberId, formData)=>{
+        try{
+                const res = await fetch(`/api/clubs/boardMembers/${memberId}`, {
+                        method:'PUT',
+                        credentials:'include',
+                        body: formData
+                });
+                const data = await res.json().catch(() => ({}));
+                if(!res.ok || data.success === false){
+                        toast.error(data.message || 'Failed to update board member');
+                        return {success:false, message: data.message || 'Failed to update board member'};
+                }
+                set((state)=>({
+                    boardMembers: state.boardMembers.map(m=> m.id === memberId ? data.member : m)
+                }));
+                toast.success('Board member updated successfully');
+                return {success:true, member: data.member};
+        }catch(err){
+                console.error(err);
+                toast.error('Error occured while updating board member: ' + err.message);
+                return {success:false, message: err.message};
+        }
+    },
+    addActivity: async(formData)=>{
+        try{
+                const res = await fetch(`/api/clubs/activity`, {
+                        method:"POST",
+                        credentials:'include',
+                        body: formData
+                });
+                const data = await res.json().catch(() => ({}));
+                if(!res.ok || data.success === false){
+                        toast.error(data.message || 'Failed to add activity');
+                        return {success:false, message: data.message || 'Failed to add activity'};
+                }
+                toast.success('Activity added successfully');
+                return {success:true, activity:data.activity};
+            } 
+        catch(err){
+                console.error(err);
+                toast.error('Error occured while adding activity: ' + err.message);
+                return {success:false, message: err.message};
+        }
+    },
+
+    updateActivity: async(activityId, formData)=>{
+    try{
+        const res = await fetch(`/api/clubs/activities/${activityId}`, {
+            method:"PUT",
+            credentials:'include',
+            body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+        if(!res.ok || data.success === false){
+            toast.error(data.message || 'Failed to update activity');
+            return {success:false, message: data.message || 'Failed to update activity'};
+        }
+        set((state)=>({
+          activities: state.activities.map(a=> a.activity_id === activityId ? data.activity : a)
+        }));
+        toast.success('Activity updated successfully');
+        return {success:true, activity:data.activity};
+        } 
+    catch(err){
+        console.error(err);
+        toast.error('Error occured while updating activity: ' + err.message);
+        return {success:false, message: err.message};
+    }
+    },
 }));
 
 export default useClubsStore;

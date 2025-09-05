@@ -9,7 +9,7 @@ export const protectRoute = async (req, res, next) => {
     // console.log('Cookies:', req.cookies); // ✅ pour debug
     const token = req.cookies?.token;
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized: No token" });
+      return res.status(401).json({ message: "Unauthorized: No token provided, please login again..." });
     }
 
     // Vérifier le token
