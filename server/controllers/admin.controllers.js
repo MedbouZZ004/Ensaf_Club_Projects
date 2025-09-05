@@ -162,5 +162,60 @@ export const getStatistics = async(req,res)=>{
       message: "Server Error",
     });
   }
+} 
+
+export const getAllAdmins = async(req,res)=>{
+  try {
+    const [admins] = await pool.query('SELECT admin_id, full_name, email, role FROM admins');
+
+    if (!admins || admins.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No admins found'
+      });
+    }
+
+    // Collect admin ids and fetch their clubs in a single query to avoid N+1
+    const adminIds = admins.map(a => a.admin_id);
+
+    let clubs = [];
+    if (adminIds.length > 0) {
+      const placeholders = adminIds.map(() => '?').join(',');
+      const [clubRows] = await pool.query(
+        `SELECT admin_id, club_name, logo FROM clubs WHERE admin_id IN (${placeholders})`,
+        adminIds
+      );
+      clubs = clubRows;
+    }
+
+    // Map clubs by admin_id
+    const clubsByAdmin = {};
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    clubs.forEach(c => {
+      const adminId = c.admin_id;
+      let logo = c.logo || null;
+      // If logo is a relative path, convert to absolute URL
+      if (logo && !/^https?:\/\//i.test(logo)) {
+        // ensure single slash between baseUrl and logo
+        logo = `${baseUrl}${logo.startsWith('/') ? '' : '/'}${logo}`;
+      }
+      if (!clubsByAdmin[adminId]) clubsByAdmin[adminId] = [];
+      clubsByAdmin[adminId].push({ club_name: c.club_name, logo });
+    });
+
+    // Attach clubs array to each admin
+    const result = admins.map(a => ({
+      admin_id: a.admin_id,
+      full_name: a.full_name,
+      email: a.email,
+      role: a.role,
+      clubs: clubsByAdmin[a.admin_id] || []
+    }));
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    console.error('getAllAdmins error:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
 }
 
