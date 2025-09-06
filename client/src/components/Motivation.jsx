@@ -1,37 +1,38 @@
 import React from 'react'
-import { motion as Motion } from 'framer-motion'
+import { motion as Motion, useReducedMotion } from 'framer-motion'
 import QuotesCard from './QuotesCard';
 import { amazingMomPictures } from '../utils';
 
 
 const Motivation = () => {
   const duration = 15;
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className='min-h-screen px-10 flex flex-col gap-13 py-10 rounded-bl-3xl  rounded-br-3xl bg-[#ffe8c7]'>
       {/* First content  : */}
       <div className="w-full flex flex-col lg:flex-row items-start gap-8">
         <Motion.div
           className='w-full lg:w-[40%]  flex flex-col gap-4'
-          initial={{ opacity: 0, x: -40 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, x: -24 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 0.6 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
         >
           <h1 className="font-roboto text-black/80 text-5xl font-bold text-wrap w-[100%]">UNFORGOTTEN MOMENT OF EFC</h1>
           <p className="font-roboto text-md w-[80%] text-black/60">With <span className='font-medium'>EFC</span>, we create memories that last a lifetime & inspire each other to reach new heights — through events, workshops, and shared projects that grow our skills, build friendships, & celebrate collaboration. Every moment is a chance to learn, lead, & belong.</p>
         </Motion.div>
         <Motion.div
           className='w-full lg:w-[60%]'
-          initial={{ opacity: 0, x: 30 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.35 }}
-          transition={{ type: 'spring', stiffness: 120, damping: 20, mass: 0.6 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
         >
           <div className='relative w-full overflow-hidden'>
             <Motion.div
-              className='flex w-full items-center gap-1'
-              animate={{ x: ['0%', '-50%'] }}
-              transition={{ duration, repeat: Infinity, ease: 'linear' }}
+              className='flex w-full items-center gap-1 transform-gpu'
+              animate={prefersReducedMotion ? {} : { x: ['0%', '-50%'] }}
+              transition={prefersReducedMotion ? {} : { duration, repeat: Infinity, ease: 'linear' }}
               style={{ willChange: 'transform' }}
             >
               {[...amazingMomPictures, ...amazingMomPictures].map((src, idx) => (
@@ -40,16 +41,19 @@ const Motivation = () => {
                   className='shrink-0 w-86 h-full  overflow-hidden bg-white shadow-sm ring-1 ring-black/5'
                 >
                   <img
-          src={src}
-          alt={`EFC moment ${idx % amazingMomPictures.length + 1}`}
+                    src={src}
+                    alt={`EFC moment ${idx % amazingMomPictures.length + 1}`}
                     className='w-full h-full object-cover'
+                    loading='lazy'
+                    decoding='async'
+                    fetchpriority='low'
                   />
                 </div>
               ))}
             </Motion.div>
             {/* Minor edge blur overlays for a softer look */}
-            <div className='pointer-events-none absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-gray-300 to-transparent backdrop-blur-sm' />
-            <div className='pointer-events-none absolute inset-y-0 right-0  w-3 bg-gradient-to-l from-gray-300 to-transparent backdrop-blur-sm' />
+            <div className='pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-[#ffe8c7] to-transparent' />
+            <div className='pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[#ffe8c7] to-transparent' />
           </div>
         </Motion.div>
       </div>
@@ -60,10 +64,10 @@ const Motivation = () => {
         <QuotesCard />
         <Motion.div
           className='w-full lg:w-[60%] lg:ml-28 gap-8 items-start flex'
-          initial={{ opacity: 0, x: 30 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
         >
           {/* Decorative timeline accent */}
           <div className='flex flex-col items-center pt-2'>
@@ -72,10 +76,10 @@ const Motivation = () => {
           </div>
           {/* Content card */}
           <Motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
             className='relative'
           >
             <h1 className='font-roboto text-black/80 text-4xl md:text-5xl font-bold'>ABOUT EFC</h1>

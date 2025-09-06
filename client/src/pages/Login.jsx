@@ -1,16 +1,30 @@
-import React from 'react'
+import React, { useActionState } from 'react'
 import { Link } from 'react-router-dom'
+import ReturnButton from '../components/ReturnButton'
+import useAuthStore from '../store/useAuthStore'
+import UserCard from '../components/UserCard'
 const Login = () => {
-  
+  const { login } = useAuthStore();
+  const [state, formAction, isPending] = useActionState(handleSubmit, { success: null, message: '' });
+  async function handleSubmit(prevState, formData) {
+    const email = formData.get('email');
+    const password = formData.get('password');
+    const dataToSend = {
+      email,
+      password
+    }
+    const result = await login(dataToSend);
+    if(!result.success) return {success:false, message:result.message}
+    return {success:true, message:result.message}
+    }
   return (
     <div className="relative h-screen items-center px-4 sm:px-8 flex ">
-
+      <ReturnButton />
       <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 rounded-2xl border border-orange-300/30 bg-neutral-800/80 backdrop-blur-md overflow-hidden shadow-xs shadow-orange-200/10">
         <div className="px-6 sm:px-8 py-8">
           <h1 className="font-roboto font-bold text-3xl text-[#ffd591]">Login</h1>
           <p className="mt-1 text-neutral-300/90">Please enter your credentials to access your account.</p>
-
-          <form className="mt-6 space-y-5 w-full" >
+          <form action={formAction} className="mt-6 space-y-5 w-full" >
             <div>
               <label htmlFor="email" className="block text-sm text-orange-200/90 mb-1">
                 Email Address
@@ -40,15 +54,15 @@ const Login = () => {
             </div>
 
             <div className="flex items-center  justify-between">
-              <Link to="reset-password" className="text-sm underline text-[#ffd591] hover:text-orange-200 transition" aria-label="Forgot password" title="Forgot password">
+              <Link to="/forgot-password" className="text-sm underline text-[#ffd591] hover:text-orange-200 transition" aria-label="Forgot password" title="Forgot password">
                 Forgot password?
               </Link>
             </div>
             <button
               type="submit"
-              className="w-full bg-orange-300 text-neutral-700 cursor-pointer font-medium py-2.5 rounded-lg border border-orange-300/60 shadow transition-all duration-200 hover:bg-orange-200 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300/70"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20"
             >
-              Login
+              {isPending ? "Loading..." : "Login"}
             </button>
             <p className='text-sm text-center flex items-center gap-2 text-white/80'>
               You don't have an account?
