@@ -5,6 +5,296 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
+// fileURLToPath already imported above
+
+// Update club (partial update with optional media replacement and folder rename on name change)
+export const updateClub = async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const clubId = parseInt(req.params.id, 10);
+    if (!clubId) {
+      connection.release();
+      return res.status(400).json({ success: false, message: 'Invalid club id' });
+    }
+
+    await connection.query('START TRANSACTION');
+    const [rows] = await connection.query('SELECT * FROM clubs WHERE club_id = ?', [clubId]);
+    if (!rows.length) {
+      await connection.query('ROLLBACK');
+      connection.release();
+      return res.status(404).json({ success: false, message: 'Club not found' });
+    }
+    const club = rows[0];
+
+    // Paths setup
+    const serverDir = path.dirname(fileURLToPath(import.meta.url));
+    const baseRoot = path.join(serverDir, '..');
+    const uploadsRoot = path.join(baseRoot, 'uploads');
+    const sanitize = (str) => String(str || '').normalize('NFKD').replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60);
+
+  // Prepare new field values
+  const { name, description, instagram_link, linkedin_link } = req.body;
+    const newName = typeof name === 'string' ? name.trim() : undefined;
+    const newDesc = typeof description === 'string' ? description.trim() : undefined;
+    const newInsta = typeof instagram_link === 'string' ? instagram_link.trim() : undefined;
+    const newLinked = typeof linkedin_link === 'string' ? linkedin_link.trim() : undefined;
+
+  // Optional admin update fields
+  const adminName = typeof req.body?.adminName === 'string' ? req.body.adminName.trim() : undefined;
+  const adminEmail = typeof req.body?.adminEmail === 'string' ? req.body.adminEmail.trim() : undefined;
+  const adminPassword = typeof req.body?.adminPassword === 'string' ? req.body.adminPassword : undefined; // allow empty string -> treated as no change
+
+    // Try to derive real existing slug from stored paths to avoid mismatch with sanitizer
+    const extractSlug = (p) => {
+      if (!p) return null;
+      const str = String(p);
+      const idx = str.indexOf('/uploads/');
+      if (idx === -1) return null;
+      const start = idx + '/uploads/'.length;
+      const rest = str.slice(start);
+      const seg = rest.split(/[\\/]/)[0];
+      return seg || null;
+    };
+    let derivedSlug = extractSlug(club.logo);
+    if (!derivedSlug) {
+      try {
+        const [anyMedia] = await connection.query('SELECT media_url FROM club_media WHERE club_id = ? LIMIT 1', [clubId]);
+        if (anyMedia && anyMedia[0]) derivedSlug = extractSlug(anyMedia[0].media_url);
+      } catch {}
+    }
+    const oldSlug = derivedSlug || (sanitize(club.name) || `club-${clubId}`);
+    const newSlug = sanitize(newName ?? club.name) || `club-${clubId}`;
+    const oldDir = path.join(uploadsRoot, oldSlug);
+    const newDir = path.join(uploadsRoot, newSlug);
+
+    // If name changed, always move/merge contents from oldDir -> newDir and delete oldDir
+    if (newName && newName !== club.name && oldDir !== newDir) {
+      await fs.mkdir(newDir, { recursive: true }).catch(() => {});
+      const sourceExists = await fs.stat(oldDir).then(() => true).catch(() => false);
+      if (sourceExists) {
+        const entries = await fs.readdir(oldDir).catch(() => []);
+        for (const name of entries) {
+          const s = path.join(oldDir, name);
+          const d = path.join(newDir, name);
+          const isDir = await fs.stat(s).then(st => st.isDirectory()).catch(() => false);
+          if (isDir) {
+            await fs.mkdir(d, { recursive: true }).catch(() => {});
+            const subEntries = await fs.readdir(s).catch(() => []);
+            for (const sub of subEntries) {
+              await fs.rename(path.join(s, sub), path.join(d, sub)).catch(async () => {
+                await fs.copyFile(path.join(s, sub), path.join(d, sub)).catch(() => {});
+                await fs.unlink(path.join(s, sub)).catch(() => {});
+              });
+            }
+          } else {
+            await fs.rename(s, d).catch(async () => {
+              await fs.copyFile(s, d).catch(() => {});
+              await fs.unlink(s).catch(() => {});
+            });
+          }
+        }
+        // Remove oldDir after moving everything
+        await fs.rm(oldDir, { recursive: true, force: true }).catch(() => {});
+      }
+      const oldPrefix = `/uploads/${oldSlug}/`;
+      const newPrefix = `/uploads/${newSlug}/`;
+      // Update paths in related tables within the same transaction
+      await connection.query('UPDATE clubs SET logo = REPLACE(logo, ?, ?) WHERE club_id = ?', [oldPrefix, newPrefix, clubId]);
+      await connection.query('UPDATE club_media SET media_url = REPLACE(media_url, ?, ?) WHERE club_id = ?', [oldPrefix, newPrefix, clubId]);
+      await connection.query('UPDATE activities SET main_image = REPLACE(main_image, ?, ?) WHERE club_id = ?', [oldPrefix, newPrefix, clubId]);
+      await connection.query(
+        'UPDATE activities_images ai JOIN activities a ON ai.activity_id = a.activity_id SET ai.images = REPLACE(ai.images, ?, ?) WHERE a.club_id = ?',
+        [oldPrefix, newPrefix, clubId]
+      );
+      await connection.query('UPDATE board_membre SET image = REPLACE(image, ?, ?) WHERE club_id = ?', [oldPrefix, newPrefix, clubId]);
+    }
+
+    const sets = [];
+    const vals = [];
+    if (newName !== undefined) { sets.push('name = ?'); vals.push(newName); }
+    if (newDesc !== undefined) { sets.push('description = ?'); vals.push(newDesc); }
+    if (newInsta !== undefined) { sets.push('instagram_link = ?'); vals.push(newInsta); }
+    if (newLinked !== undefined) { sets.push('linkedin_link = ?'); vals.push(newLinked); }
+
+    // Files handling
+    const files = req.files || {};
+
+    // Ensure destination dirs exist (under the existing/renamed folder)
+    const logoDir = path.join(newDir, 'logo');
+    const videoDir = path.join(newDir, 'video');
+    const imagesDir = path.join(newDir, 'images');
+    await fs.mkdir(logoDir, { recursive: true }).catch(() => {});
+    await fs.mkdir(videoDir, { recursive: true }).catch(() => {});
+    await fs.mkdir(imagesDir, { recursive: true }).catch(() => {});
+
+    // Helper to clear a directory contents
+    const clearDir = async (dir) => {
+      try {
+        const entries = await fs.readdir(dir).catch(() => []);
+        await Promise.all(entries.map(async (entry) => {
+          const p = path.join(dir, entry);
+          await fs.unlink(p).catch(() => {});
+        }));
+      } catch {}
+    };
+
+    // Helper to resolve path from DB path or absolute URL
+    const toAbs = (p) => {
+      if (!p) return null;
+      let str = String(p);
+      // If full URL, extract '/uploads/...'
+      const idx = str.indexOf('/uploads/');
+      if (idx !== -1) {
+        str = str.slice(idx + 1); // remove leading slash to get 'uploads/...'
+      }
+      const clean = str.replace(/^\/+/, '');
+      const full = (clean.startsWith('uploads/') || clean.startsWith('uploads\\'))
+        ? path.join(baseRoot, clean)
+        : path.join(baseRoot, 'uploads', clean);
+      const normalized = path.normalize(full);
+      if (!normalized.startsWith(path.normalize(uploadsRoot))) return null;
+      return normalized;
+    };
+    // Helper to normalize to DB path starting with '/uploads/...'
+    const toDbRel = (p) => {
+      if (!p) return null;
+      let str = String(p);
+      const idx = str.indexOf('/uploads/');
+      if (idx !== -1) return str.slice(idx);
+      // Assume already relative
+      if (str.startsWith('uploads/')) return `/${str}`;
+      if (str.startsWith('/uploads/')) return str;
+      return `/uploads/${str.replace(/^\/+/, '')}`;
+    };
+
+    // Replace logo if provided (use unique filename to bust cache)
+    if (files.clubLogo && files.clubLogo[0]) {
+      const logoFile = files.clubLogo[0];
+      await clearDir(logoDir);
+      const ext = path.extname(logoFile.originalname || logoFile.filename || '');
+      const src = path.join(baseRoot, logoFile.destination, logoFile.filename);
+      const dest = path.join(logoDir, `logo-${Date.now()}${ext || path.extname(src)}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).catch(() => {}); await fs.unlink(src).catch(() => {}); });
+      const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+      sets.push('logo = ?');
+      vals.push(dbp);
+    }
+
+    // Replace video if provided (in club_media as media_type='video')
+    if (files.clubVideo && files.clubVideo[0]) {
+      // Clear old video folder and DB rows
+      await clearDir(videoDir);
+      const [oldVideos] = await connection.query('SELECT media_url FROM club_media WHERE club_id = ? AND media_type = "video"', [clubId]);
+      for (const v of oldVideos) {
+        const abs = toAbs(v.media_url);
+        if (abs) await fs.unlink(abs).catch(() => {});
+      }
+      await connection.query('DELETE FROM club_media WHERE club_id = ? AND media_type = "video"', [clubId]);
+      const videoFile = files.clubVideo[0];
+      const ext = path.extname(videoFile.originalname || videoFile.filename || '');
+      const src = path.join(baseRoot, videoFile.destination, videoFile.filename);
+      const dest = path.join(videoDir, `video-${Date.now()}${ext || path.extname(src)}`);
+      await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).catch(() => {}); await fs.unlink(src).catch(() => {}); });
+      const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+      await connection.query('INSERT INTO club_media (club_id, media_url, media_type) VALUES (?, ?, "video")', [clubId, dbp]);
+    }
+
+    // Replace specific images if mapping provided; otherwise append
+    if (files.clubMainImages && files.clubMainImages.length) {
+      // Normalize replace targets from body: can be JSON, string, or array of strings
+      let replaceTargets = [];
+      const rawRT = req.body?.replaceTargets;
+      if (Array.isArray(rawRT)) {
+        replaceTargets = rawRT.filter(Boolean);
+      } else if (typeof rawRT === 'string' && rawRT.trim()) {
+        try {
+          const parsed = JSON.parse(rawRT);
+          if (Array.isArray(parsed)) replaceTargets = parsed.filter(Boolean);
+          else replaceTargets = [rawRT];
+        } catch {
+          // Not JSON, treat as single target
+          replaceTargets = [rawRT];
+        }
+      }
+
+      let fileIndex = 0;
+      // Handle replacements for as many pairs as provided
+      for (; fileIndex < Math.min(replaceTargets.length, files.clubMainImages.length); fileIndex++) {
+        const imgFile = files.clubMainImages[fileIndex];
+        const targetUrl = String(replaceTargets[fileIndex] || '');
+        if (!imgFile || !targetUrl) continue;
+        const src = path.join(baseRoot, imgFile.destination, imgFile.filename);
+        const targetAbs = toAbs(targetUrl);
+        const targetDb = toDbRel(targetUrl);
+        if (!targetAbs || !targetDb) {
+          // Fallback: append if target invalid
+          const ext = path.extname(imgFile.originalname || imgFile.filename || '');
+          const unique = `${Date.now()}-${fileIndex + 1}-${Math.random().toString(36).slice(2, 8)}`;
+          const dest = path.join(imagesDir, `image-${unique}${ext || path.extname(src)}`);
+          await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).catch(() => {}); await fs.unlink(src).catch(() => {}); });
+          const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+          await connection.query('INSERT INTO club_media (club_id, media_url, media_type) VALUES (?, ?, "image")', [clubId, dbp]);
+          continue;
+        }
+        // Write new file with unique name, update DB path, then remove old file
+        const ext = path.extname(imgFile.originalname || imgFile.filename || '') || path.extname(src);
+        const unique = `${Date.now()}-${fileIndex + 1}-${Math.random().toString(36).slice(2, 8)}`;
+        const dest = path.join(imagesDir, `image-${unique}${ext}`);
+        await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).catch(() => {}); await fs.unlink(src).catch(() => {}); });
+        const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+        await connection.query('UPDATE club_media SET media_url = ? WHERE club_id = ? AND media_type = "image" AND media_url = ? LIMIT 1', [dbp, clubId, targetDb]);
+        await fs.unlink(targetAbs).catch(() => {});
+      }
+
+      // Append any remaining files after replacements
+      for (; fileIndex < files.clubMainImages.length; fileIndex++) {
+        const imgFile = files.clubMainImages[fileIndex];
+        const ext = path.extname(imgFile.originalname || imgFile.filename || '');
+        const src = path.join(baseRoot, imgFile.destination, imgFile.filename);
+        const unique = `${Date.now()}-${fileIndex + 1}-${Math.random().toString(36).slice(2, 8)}`;
+        const dest = path.join(imagesDir, `image-${unique}${ext || path.extname(src)}`);
+        await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).catch(() => {}); await fs.unlink(src).catch(() => {}); });
+        const dbp = '/' + path.relative(baseRoot, dest).replace(/\\/g, '/');
+        await connection.query('INSERT INTO club_media (club_id, media_url, media_type) VALUES (?, ?, "image")', [clubId, dbp]);
+      }
+    }
+
+    if (sets.length) {
+      vals.push(clubId);
+      await connection.query(`UPDATE clubs SET ${sets.join(', ')} WHERE club_id = ?`, vals);
+    }
+
+    // Update related admin if any admin fields provided
+    if (adminName !== undefined || adminEmail !== undefined || (adminPassword && adminPassword.trim().length > 0)) {
+      const adminSets = [];
+      const adminVals = [];
+      if (adminName !== undefined) { adminSets.push('full_name = ?'); adminVals.push(adminName); }
+      if (adminEmail !== undefined) { adminSets.push('email = ?'); adminVals.push(adminEmail); }
+      if (adminPassword && adminPassword.trim().length > 0) {
+        const salt = await bcrypt.genSalt(10);
+        const hashed = await bcrypt.hash(adminPassword, salt);
+        adminSets.push('password = ?'); adminVals.push(hashed);
+      }
+      if (adminSets.length) {
+        adminVals.push(club.admin_id);
+        await connection.query(`UPDATE admins SET ${adminSets.join(', ')} WHERE admin_id = ?`, adminVals);
+      }
+    }
+
+    await connection.query('COMMIT');
+    connection.release();
+
+    // Return updated details using existing getClubById query format
+    req.params.id = String(clubId);
+    return await getClubById(req, res);
+  } catch (err) {
+    console.error('Error updating club:', err);
+    try { await connection.query('ROLLBACK'); } catch {}
+    try { connection.release(); } catch {}
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
 
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
@@ -1587,4 +1877,107 @@ export const updateBoardMember = async (req, res) => {
     try { connection.release(); } catch {}
     return res.status(500).json({ success:false, message:'Internal Server Error' });
   }
+}
+
+export const getClubStatistics = async (req, res)=>{
+
+  try {
+    const admin = req.admin;
+    if (!admin) {
+      return res.status(401).json({ success: false, message: 'Admin authentication required' });
+    }
+    const adminId = admin.admin_id;
+
+    // Get all clubs for this admin
+    const [clubRows] = await pool.query(
+      'SELECT club_id AS id, name, creation_date AS created_date, views, likes FROM clubs WHERE admin_id = ?',
+      [adminId]
+    );
+    if (!clubRows || clubRows.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          admin_id: adminId,
+          clubs_count: 0,
+          counters: {
+            likes: 0,
+            views: 0,
+            reviews: 0,
+            activities: 0,
+            board_members: 0,
+            media: { images: 0, videos: 0 },
+            categories_count: 0,
+          },
+          categories: [],
+          last_activity_date: null,
+          clubs: []
+        }
+      });
+    }
+
+    const clubIds = clubRows.map(r => r.id);
+    const placeholders = clubIds.map(() => '?').join(',');
+
+    // Parallel aggregate queries across all clubs for this admin
+    const [
+      [reviewsCntRows],
+      [activitiesCntRows],
+      [boardCntRows],
+      [imagesCntRows],
+      [videosCntRows],
+      [categoriesRows],
+      [likesCntRows],
+      [viewsCntRows],
+      [lastActRows],
+    ] = await Promise.all([
+      pool.query(`SELECT COUNT(*) AS cnt FROM reviews WHERE club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT COUNT(*) AS cnt FROM activities WHERE club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT COUNT(*) AS cnt FROM board_membre WHERE club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT COUNT(*) AS cnt FROM club_media WHERE media_type = 'image' AND club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT COUNT(*) AS cnt FROM club_media WHERE media_type = 'video' AND club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT DISTINCT ca.name FROM club_categories cc JOIN categories ca ON cc.category_id = ca.category_id WHERE cc.club_id IN (${placeholders})`, clubIds),
+      pool.query(`SELECT COUNT(*) AS cnt FROM club_likes WHERE club_id IN (${placeholders})`, clubIds).catch(() => [ [ { cnt: null } ] ]),
+      pool.query(`SELECT COUNT(*) AS cnt FROM club_views WHERE club_id IN (${placeholders})`, clubIds).catch(() => [ [ { cnt: null } ] ]),
+      pool.query(`SELECT MAX(activity_date) AS last_activity_date FROM activities WHERE club_id IN (${placeholders})`, clubIds),
+    ]);
+
+    const safeCnt = (rows) => (rows && rows[0] && typeof rows[0].cnt === 'number') ? rows[0].cnt : 0;
+    const reviews = safeCnt(reviewsCntRows);
+    const activities = safeCnt(activitiesCntRows);
+    const board_members = safeCnt(boardCntRows);
+    const images = safeCnt(imagesCntRows);
+    const videos = safeCnt(videosCntRows);
+    const likesLive = (likesCntRows && likesCntRows[0] && likesCntRows[0].cnt != null) ? likesCntRows[0].cnt : null;
+    const viewsLive = (viewsCntRows && viewsCntRows[0] && viewsCntRows[0].cnt != null) ? viewsCntRows[0].cnt : null;
+    const likesSnapshot = clubRows.reduce((sum, r) => sum + (typeof r.likes === 'number' ? r.likes : 0), 0);
+    const viewsSnapshot = clubRows.reduce((sum, r) => sum + (typeof r.views === 'number' ? r.views : 0), 0);
+    const likes = likesLive ?? likesSnapshot;
+    const views = viewsLive ?? viewsSnapshot;
+    const categories = Array.isArray(categoriesRows) ? categoriesRows.map(r => r.name) : [];
+    const last_activity_date = (lastActRows && lastActRows[0]) ? lastActRows[0].last_activity_date : null;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        admin_id: adminId,
+        clubs_count: clubRows.length,
+        counters: {
+          likes,
+          views,
+          reviews,
+          activities,
+          board_members,
+          media: { images, videos },
+          categories_count: categories.length,
+        },
+        categories,
+        last_activity_date,
+        clubs: clubRows.map(c => ({ id: c.id, name: c.name, created_date: c.created_date }))
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching club statistics:', err);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+
 }

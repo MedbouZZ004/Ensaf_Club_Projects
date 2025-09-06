@@ -162,60 +162,74 @@ export const getStatistics = async(req,res)=>{
       message: "Server Error",
     });
   }
-} 
+};
 
-export const getAllAdmins = async(req,res)=>{
+export const getAdminProfile = async (req, res)=>{
   try {
-    const [admins] = await pool.query('SELECT admin_id, full_name, email, role FROM admins');
-
-    if (!admins || admins.length === 0) {
+    const admin_id = req.admin.admin_id;
+    const [rows]=await pool.query('SELECT admin_id,full_name,email FROM admins WHERE admin_id=?',[admin_id]);
+    if(rows.length === 0){
       return res.status(404).json({
-        success: false,
-        message: 'No admins found'
-      });
+        success:false,
+        message:"Admin not found"});
     }
 
-    // Collect admin ids and fetch their clubs in a single query to avoid N+1
-    const adminIds = admins.map(a => a.admin_id);
-
-    let clubs = [];
-    if (adminIds.length > 0) {
-      const placeholders = adminIds.map(() => '?').join(',');
-      const [clubRows] = await pool.query(
-        `SELECT admin_id, club_name, logo FROM clubs WHERE admin_id IN (${placeholders})`,
-        adminIds
-      );
-      clubs = clubRows;
-    }
-
-    // Map clubs by admin_id
-    const clubsByAdmin = {};
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    clubs.forEach(c => {
-      const adminId = c.admin_id;
-      let logo = c.logo || null;
-      // If logo is a relative path, convert to absolute URL
-      if (logo && !/^https?:\/\//i.test(logo)) {
-        // ensure single slash between baseUrl and logo
-        logo = `${baseUrl}${logo.startsWith('/') ? '' : '/'}${logo}`;
-      }
-      if (!clubsByAdmin[adminId]) clubsByAdmin[adminId] = [];
-      clubsByAdmin[adminId].push({ club_name: c.club_name, logo });
+    const admin = rows[0];
+    res.status(200).json({
+      success:true,
+      data:admin
     });
-
-    // Attach clubs array to each admin
-    const result = admins.map(a => ({
-      admin_id: a.admin_id,
-      full_name: a.full_name,
-      email: a.email,
-      role: a.role,
-      clubs: clubsByAdmin[a.admin_id] || []
-    }));
-
-    return res.status(200).json({ success: true, data: result });
-  } catch (err) {
-    console.error('getAllAdmins error:', err);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
+  catch(err){
+    console.error("Error fetching admin profile:", err);
+    res.status(500).json({
+      success:false,
+      message:"Internal server error"
+    });
+  }
+}
+export const updateAdminProfile = async (req, res)=>{
+  try {
+    const admin_id = req.admin.admin_id;
+  const { full_name, email, password } = req.body || {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  if(!full_name || !email){
+      return res.status(400).json({ success: false, message: 'Full name and email are required' });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+    // If password is provided (non-empty), validate it
+    const willUpdatePassword = typeof password === 'string' && password.trim().length > 0;
+    if (willUpdatePassword && !passwordRegex.test(password)) {
+      return res.status(400).json({ success: false, message: 'Invalid password format, it must be at least 8 characters long and contain at least one letter and one number.' });
+    }
+    // Check if the email is already taken by another admin
+    const [existingAdmins] = await pool.query('SELECT * FROM admins WHERE email = ? AND admin_id != ?', [email, admin_id]);
+    if (existingAdmins.length > 0) {
+      return res.status(409).json({ success: false, message: 'Email is already in use by another admin' });
+    }
+    if (willUpdatePassword) {
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      // Update the admin profile including password
+      await pool.query('UPDATE admins SET full_name = ?, email = ?, password = ? WHERE admin_id = ?',
+        [full_name, email, hashedPassword, admin_id]);
+    } else {
+      // Update without changing password
+      await pool.query('UPDATE admins SET full_name = ?, email = ? WHERE admin_id = ?',
+        [full_name, email, admin_id]);
+    }
+    res.status(200).json({ success: true, message: 'Profile updated successfully' });
+
+    }catch(err){
+    console.error('Error while updating the admin profile:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+
+  }
+}
+}
 }
 
