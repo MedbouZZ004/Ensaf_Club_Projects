@@ -30,7 +30,7 @@ export default function QuotesCard() {
             whileInView={{opacity:1, x:0}}
             viewport={{once:true, amount:0.25}}
             transition={{duration:0.5, ease:'easeOut'}}
-            className='w-[30%] flex flex-col gap-5 bg-orange-300 p-6 rounded-tr-4xl rounded-bl-4xl shadow-xl ring-1 ring-black/10 relative overflow-hidden'
+            className='w-full md:w-[30%] flex flex-col gap-5 bg-orange-300 p-6 rounded-tr-4xl rounded-bl-4xl shadow-xl ring-1 ring-black/10 relative overflow-hidden'
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             tabIndex={0}

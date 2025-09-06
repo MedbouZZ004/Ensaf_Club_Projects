@@ -19,12 +19,15 @@ const AddAndEditClubPage = () => {
   const logoInputRef = React.useRef(null);
   const videoInputRef = React.useRef(null);
   const imageInputRefs = React.useRef([]);
+<<<<<<< HEAD
+=======
 const AddAndEditClubPage = () => {
   const {addClub} = useClubsStore();
   const categoriesNumbers = [1, 2, 3, 4, 5, 6];
   const imageNumbers = [1, 2, 3, 4, 5, 6];
   const [numberOfCategories, setNumberOfCategories] = React.useState(0)
   const [numberOfImages, setNumberOfImages] = React.useState(0)
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
   const [searchParams] = useSearchParams();
   const clubId = searchParams.get("id");
   const isEditMode = Boolean(clubId);
@@ -155,6 +158,8 @@ const AddAndEditClubPage = () => {
   const adminEmail = formData.get("adminEmail");
   const adminPassword = formData.get("adminPassword");
   const confirmPassword = formData.get("confirmPassword");
+<<<<<<< HEAD
+=======
     const linkedIn = formData.get("linkedin");
     const instagram = formData.get("instagram");
 
@@ -164,6 +169,7 @@ const AddAndEditClubPage = () => {
     const adminEmail = formData.get("adminEmail");
     const adminPassword = formData.get("adminPassword");
     const confirmPassword = formData.get("confirmPassword");
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
 
   // Build multipart form data for upload
   const payload = new FormData();
@@ -228,10 +234,13 @@ const AddAndEditClubPage = () => {
     // Call updateClub from store
     const result = await updateClub(clubId, payload);
     return result;
+<<<<<<< HEAD
+=======
 
   // Edit handler (placeholder until update API is available)
   async function handleEditSubmit(){
     return {success:false, message:'Edit flow not implemented yet.'}
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
   }
 
   const [, formAddAction, isAddPending] = useActionState(handleAddSubmit, {success:null, message:null});
@@ -250,10 +259,13 @@ const AddAndEditClubPage = () => {
     encType="multipart/form-data"
     action={isEditMode ? formEditAction : formAddAction}
     className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<<<<<<< HEAD
+=======
 
   encType="multipart/form-data"
   action={isEditMode ? formEditAction : formAddAction}
       className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
         <section className="lg:col-span-8 rounded-xl border border-orange-200 bg-white shadow-sm">
           <div className="px-4 md:px-6 py-4 border-b border-orange-100">
             <h3 className="text-lg font-semibold text-black underline font-roboto">{clubId ? 'Edit Club Details' : 'Club Details'}</h3>
@@ -267,8 +279,11 @@ const AddAndEditClubPage = () => {
                 id="clubName"
                 type="text"
                 placeholder={clubId ? 'Enter the new club name...' : 'Enter club name...'}
+<<<<<<< HEAD
+=======
 
                 placeholder="Enter club name..."
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                 required
                 name="clubName"
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -285,8 +300,11 @@ const AddAndEditClubPage = () => {
                 rows={5}
                 name="clubDescription"
                 placeholder={clubId ? 'Enter the new club description...' : 'Enter club description...'}
+<<<<<<< HEAD
+=======
 
                 placeholder="Enter club description..."
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                 required
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
               ></textarea>
@@ -314,8 +332,11 @@ const AddAndEditClubPage = () => {
 
               {numberOfCategories > 0 && (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<<<<<<< HEAD
+=======
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                   {Array.from({ length: numberOfCategories }, (_, index) => (
                     <div key={index}>
                       <label htmlFor={`category-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -327,8 +348,11 @@ const AddAndEditClubPage = () => {
                         name={`category-${index}`}
       defaultValue={categoriesValues[index] || ''}
       placeholder={clubId ? `Enter the new category ${index + 1} name...` : `Enter category ${index + 1} name...`}
+<<<<<<< HEAD
+=======
 
                         placeholder="Enter category name..."
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                         required
                         className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                       />
@@ -347,9 +371,12 @@ const AddAndEditClubPage = () => {
                   id="instagram"
                   type="url"
                   placeholder={clubId ? 'Enter the new Instagram link...' : 'Enter Instagram link...'}
+<<<<<<< HEAD
+=======
 
                   placeholder="Enter Instagram link..."
  
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                   name="instagram"
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
@@ -363,10 +390,13 @@ const AddAndEditClubPage = () => {
                   type="url"
                   name="linkedin"
                   placeholder={clubId ? 'Enter the new LinkedIn link...' : 'Enter LinkedIn link...'}
+<<<<<<< HEAD
+=======
 
 
                   placeholder="Enter LinkedIn link..."
 
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
               </div>
@@ -389,6 +419,8 @@ const AddAndEditClubPage = () => {
                   )}
                   <input id="clubLogo" name="clubLogo" type="file" accept="image/*" className="sr-only" onChange={handleLogoChange} ref={logoInputRef} required={!isEditMode} />
                 </label>
+<<<<<<< HEAD
+=======
 
                 <input
                   id="clubLogo"
@@ -399,6 +431,7 @@ const AddAndEditClubPage = () => {
                   className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
  
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               </div>
               <div>
                 <label htmlFor="clubVideo" className="block text-sm font-medium text-gray-700 mb-1">
@@ -415,6 +448,8 @@ const AddAndEditClubPage = () => {
                   )}
                   <input id="clubVideo" name="clubVideo" type="file" accept="video/*" className="sr-only" onChange={handleVideoChange} ref={videoInputRef} required={!isEditMode} />
                 </label>
+<<<<<<< HEAD
+=======
 
                 <input
                   id="clubVideo"
@@ -425,6 +460,7 @@ const AddAndEditClubPage = () => {
                   className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
 
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               </div>
             </div>
             <div className="space-y-3">
@@ -465,6 +501,8 @@ const AddAndEditClubPage = () => {
                         )}
                         <input id={`image-${index}`} name="clubMainImages" type="file" accept="image/*" className="sr-only" onChange={handleClubImageChange(index)} ref={(el)=> (imageInputRefs.current[index] = el)} required={!isEditMode} />
                       </label>
+<<<<<<< HEAD
+=======
 
 
                       {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
@@ -477,12 +515,17 @@ const AddAndEditClubPage = () => {
                         required
                         className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                       />
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
                     </div>
                   ))}
                 </div>
               )}
             </div>
+<<<<<<< HEAD
+          
+=======
 
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
           </div>
         </section>
 
@@ -534,11 +577,14 @@ const AddAndEditClubPage = () => {
               {isEditMode && (
                 <p className="text-xs text-gray-500 mt-1">Leave blank to keep the current password.</p>
               )}
+<<<<<<< HEAD
+=======
 
                 required
                 name="adminPassword"
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
               />
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
             </div>
             {
             !clubId && 
@@ -572,4 +618,9 @@ const AddAndEditClubPage = () => {
     </main>
   )
 }
+<<<<<<< HEAD
+
 export default AddAndEditClubPage;
+=======
+export default AddAndEditClubPage;
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e

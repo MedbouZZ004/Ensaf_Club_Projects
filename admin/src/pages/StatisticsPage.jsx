@@ -7,7 +7,10 @@ const StatisticsPage = () => {
       <div>
         
       </div>
+<<<<<<< HEAD
+=======
       <h1>Statistics Page</h1>
+>>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
     </div>
   )
 }

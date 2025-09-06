@@ -13,5 +13,4 @@ router.put('/profile', protectedAdminRoute, updateAdminProfile);
 
 
 
-
 export default router;

@@ -18,11 +18,17 @@ const ExistingClubs = ({clubs}) => {
       <h1 className='w-[100%] font-roboto font-bold  text-center text-[#ffd28f] text-4xl '>SEARCH FOR CLUBS</h1>
       <p className='text-center text-neutral-400 font-roboto'>Find your perfect club match, you can search by name OR category</p>
       <SearchForm  setQuery={setQuery} />
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-[1200px] mt-8'>
+      {!filteredClubs.length > 0 ? 
+        <div className='w-full flex items-center justify-center'>
+          <h1 className='text-2xl font-normal  text-gray-300/80 mt-10 font-roboto '>
+            No clubs found
+          </h1>
+        </div>
+      :(<div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-[1200px] mt-8'>
         {filteredClubs.map((club) => (
           <ClubCard key={club.club_id} club={club} />
         ))}
-      </div>
+      </div>)}
 
     </div>
   )

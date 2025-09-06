@@ -295,7 +295,6 @@ export const updateClub = async (req, res) => {
   }
 };
 
-
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
   try {
@@ -1979,5 +1978,4 @@ export const getClubStatistics = async (req, res)=>{
     console.error('Error fetching club statistics:', err);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-
 }

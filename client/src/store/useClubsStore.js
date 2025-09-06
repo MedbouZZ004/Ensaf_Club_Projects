@@ -6,6 +6,7 @@ const useClubsStore = create((set) => ({
   club:null,
   loading:false,
   error:null,
+  nbrVisitors:0,
   getClubs:async ()=>{
    
     try{
@@ -195,7 +196,20 @@ const useClubsStore = create((set) => ({
         return {success:false, error:'Error occurred while sending message'};
     }
   },
- 
+  countVisitors: async ()=>{
+    try{
+        const res = await fetch('/api/visits')
+        const data  = await res.json();
+        if(!data.success){
+            console.log(data.message);
+            return
+        }
+        set({nbrVisitors: data.totalVisitors})
+    }catch(err){
+        console.error("Error occurred while counting visitors:", err);
+        return;
+    }
+  }
 }))
 
 export default useClubsStore;

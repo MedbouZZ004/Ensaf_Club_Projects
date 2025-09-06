@@ -30,13 +30,13 @@ html:focus-within {
 
 @layer utilities {
   .form{
-    @apply flex items-center border focus:border-orange-300/80  border-orange-300/40  gap-3 px-3 py-2 rounded-full w-[50%] bg-neutral-700/60;
+    @apply flex items-center  border focus:border-orange-300/80  border-orange-300/40  gap-3 px-3 py-2 rounded-full w-full lg:w-[50%] bg-neutral-700/60;
   }
   .input {
-    @apply w-[83%] py-1 outline-none bg-transparent bg-none;
+    @apply w-[83%] py-1  bg-transparent outline-none;
   }
   .button {
-    @apply w-[17%] flex text-neutral-800/80 items-center hover:bg-orange-300/90 duration-200 justify-around font-medium ease-in transition-all bg-orange-300  cursor-pointer text-lg rounded-2xl py-1 ;
+    @apply w-[32%] sm:w-[17%] flex text-neutral-800/80 items-center hover:bg-orange-300/90 duration-200 justify-around font-medium ease-in transition-all bg-orange-300  cursor-pointer text-lg rounded-2xl py-1 ;
   }
   .reset-link {
     @apply flex items-center text-neutral-800/80 justify-center w-10 h-9 text-xl rounded-full   bg-orange-300 transition-all hover:bg-orange-300/90 transition duration-200;

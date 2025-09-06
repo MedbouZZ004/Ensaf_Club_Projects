@@ -60,7 +60,7 @@ const ClubDetails = () => {
       <ClubContact
        admin_id={club?.admin}
       />
-      <div className='relative left-300 mb-5'>
+      <div className='relative left-60 sm:left-140 xl:left-310 mb-5'>
         <Views views={club?.views} />
       </div>
       <GoUp />

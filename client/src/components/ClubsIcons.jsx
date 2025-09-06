@@ -17,7 +17,7 @@ const ClubsIcons = () => {
     { src: teatro, alt: 'Teatro' },
   ], []);
 
-  const baseRadius = 200; // default radius
+  const baseRadius = window.innerWidth < 640 ? 150 : 200;
 
   return (
     <div className='relative z-100 px-10 flex items-center justify-center'>
@@ -30,9 +30,8 @@ const ClubsIcons = () => {
         className='-right-0 bottom-130  pointer-events-none absolute z-100  w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/40 rounded-full blur-[160px]'
       />
       <div className='relative w-80 h-80 md:w-96 md:h-96'>
-        {/* Icon ring (absolute, centered) */}
         {icons.map((icon, i) => {
-          const angle = (i / icons.length) * Math.PI * 2; // radians
+          const angle = (i / icons.length) * Math.PI * 2; 
           const x = Math.cos(angle) * baseRadius;
           const y = Math.sin(angle) * baseRadius;
           return (
@@ -49,7 +48,7 @@ const ClubsIcons = () => {
               transition={{ type: 'spring', stiffness: 140, damping: 18, mass: 0.7, delay: open ? i * 0.03 + 0.05 : 0 }}
               style={{ translateX: '-50%', translateY: '-50%' }}
             >
-              <div className='w-15 h-15 md:w-30 md:h-30 rounded-full border-2 border-orange-300/70  shadow-xs  shadow-orange-200/80 overflow-hidden'>
+              <div className='w-25 h-25 md:w-30 md:h-30 rounded-full border-2 border-orange-300/70  shadow-xs  shadow-orange-200/80 overflow-hidden'>
                 <img src={icon.src} alt={icon.alt} className='w-full h-full  rounded-full' />
               </div>
             </Motion.div>
@@ -72,7 +71,7 @@ const ClubsIcons = () => {
             animate={{ opacity: open ? 0 : 1, y: open ? -4 : 0 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
           >
-            <h1 className='text-[#ffcf9c] drop-shadow-md font-roboto font-medium text-3xl absolute left-30 rotate-30 w-50 bottom-4 select-none'>
+            <h1 className='text-[#ffcf9c] drop-shadow-md font-roboto font-medium text-xl sm:text-3xl absolute left-30 rotate-30 w-50 bottom-4 select-none'>
               Hover Here!
             </h1>
             <Motion.div
@@ -80,7 +79,7 @@ const ClubsIcons = () => {
               animate={open ? { y: 0} : { y: [0, -4, 0] }}
               transition={{ duration: 2, repeat: open ? 0 : Infinity, ease: 'easeInOut' }}
             >
-              <PiArrowBendDoubleUpRightFill className='text-orange-200 text-8xl' />
+              <PiArrowBendDoubleUpRightFill className='text-orange-200 text-7xl sm:text-8xl' />
             </Motion.div>
           </Motion.div>
 

@@ -38,32 +38,25 @@ server.use("/api/admin",adminRouter);
 
 
 //TRACKING HOW MUHC USERS VISITED OUR SITE 
-const getClientIP = (req) => {
-  let ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-  return ip.replace("::ffff:", ""); //  IPv4 format
-};
+server.use(async (req, res, next) => {
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
-// Track Unique Visitors
-server.get("/api/visits", (req, res) => {
-  const ip = getClientIP(req);
-  const insertQuery = "INSERT IGNORE INTO visitors (ip_address) VALUES (?)";
-  pool.query(insertQuery, [ip], (err) => {
-    if (err) {
-      console.error("Error inserting IP:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
+  // Check if today exists
+  const [rows] = await pool.execute("SELECT * FROM visits WHERE visit_date = ?", [today]);
 
-    // Count total unique visitors
-    const countQuery = "SELECT COUNT(*) AS total FROM visitors";
-    pool.query(countQuery, (err, results) => {
-      if (err) {
-        console.error("Error fetching count:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
+  if (rows.length > 0) {
+    await pool.execute("UPDATE visits SET count = count + 1 WHERE visit_date = ?", [today]);
+  } else {
+    await pool.execute("INSERT INTO visits (visit_date, count) VALUES (?, ?)", [today, 1]);
+  }
 
-      res.json({ totalVisitors: results[0].total });
-    });
-  });
+  next();
+});
+
+// Endpoint to get stats
+server.get("/api/visits", async (req, res) => {
+  const [rows] = await pool.execute("SELECT * FROM visits ORDER BY visit_date DESC");
+  res.json(rows);
 });
 
 

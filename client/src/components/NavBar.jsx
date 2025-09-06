@@ -36,7 +36,7 @@ const NavBar = () => {
       {openUserMenu && <UserCard 
       setOpenUserMenu={setOpenUserMenu}
       user={user} />}
-       <div
+      <div
         aria-hidden
         className='pointer-events-none absolute z-0 top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/30 rounded-full blur-[130px]'
       />
@@ -91,7 +91,9 @@ const NavBar = () => {
       <button
         type='button'
         className='md:hidden inline-flex items-center justify-center rounded-md px-3 py-2 text-[#FFC58D]'
-        onClick={() => setMobileOpen(v => !v)}
+        onClick={() => {setMobileOpen(v => !v)
+          setOpenUserMenu(false);
+        }}
         aria-label='Toggle menu'
         aria-controls='mobile-nav'
         aria-expanded={mobileOpen}
@@ -102,9 +104,25 @@ const NavBar = () => {
       {mobileOpen && (
         <div id='mobile-nav' className='md:hidden absolute right-2 top-full mt-2'>
           <div className='w-40 rounded-lg border-1 border-orange-300/40 bg-neutral-900/85 backdrop-blur-md p-2.5 shadow-md shadow-orange-200/10'>
-            <div className='flex flex-col gap-1.5'>
-              <div className='flex flex-col gap-1'>
-                <MdOutlineTranslate className='text-orange-300 mb-2' size={20} />
+            <div className='flex flex-col items-center gap-1.5'>
+              {user ? 
+              <button 
+              onClick={()=>{setOpenUserMenu(v => !v); setMobileOpen(false);}}
+              className='text-[#FFC58D] gap-2 justify-center  flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 w-10 h-10 rounded-full shadow-orange-200 shadow-xs '>
+                <FaUser />
+              </button>
+              :
+              <button 
+                onClick={()=>{ navigate('/login') }}
+                className='mt-1 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer  px-2.5 py-1 rounded-md'
+              >
+                Login <FiLogIn size={14}/>
+              </button>}
+              <div className='flex  flex-col gap-1'>
+                <p className='flex items-center gap-2 text-[#FFC58D] mb-2 text-lg'>
+                  <MdOutlineTranslate size={20} />
+                  Language
+                </p>
                 <div className='flex gap-1.5 flex-wrap'>
                   {languages.map(lang => (
                     <button
@@ -117,17 +135,7 @@ const NavBar = () => {
                   ))}
                 </div>
               </div>
-              {user ? 
-              <button className='text-[#FFC58D] gap-2 flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 px-4 py-1.5 rounded-lg shadow-orange-200 shadow-xs '>
-                <FaUser />
-              </button>
-              :
-              <button 
-                onClick={()=>{ navigate('/login') }}
-                className='mt-1 w-full justify-center text-[#FFC58D] gap-2 inline-flex items-center cursor-pointer  px-2.5 py-1 rounded-md'
-              >
-                Login <FiLogIn size={14}/>
-              </button>}
+           
             </div>
           </div>
         </div>

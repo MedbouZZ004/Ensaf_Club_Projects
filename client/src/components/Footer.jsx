@@ -1,11 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState} from 'react';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaHeart } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import useClubsStore from '../store/useClubsStore';
 
+
 const Footer = () => {
-  const { clubs } = useClubsStore();
-  
+  const { clubs} = useClubsStore();
+  const [visits, setVisits] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/visits")
+      .then(res => res.json())
+      .then(data => setVisits(data));
+  }, []);
+  console.log("number of visitor", visits)
   return (
     <footer className="bg-neutral-900 font-roboto mt-5 md:mt-10 pt-20 pb-10 px-6 md:px-12 lg:px-24 relative overflow-hidden">
       {/* Decorative elements */}
@@ -14,9 +22,7 @@ const Footer = () => {
       <div className="absolute -bottom-20 -left-10 w-40 h-40 rounded-full bg-primary/10 blur-xl"></div>
       
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
-          {/* Brand Column */}
           <div className="lg:col-span-1">
             <div className="mb-6">
               <img src ='/logo.png' className='w-50' />
@@ -27,16 +33,15 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Clubs */}
           <div className="lg:col-span-1">
             <h3 className="text-xl font-bold text-primary  relative pb-2">
               Our Clubs
             </h3>
             <ul className="space-y-3">
               {clubs?.map((club) => (
-                <li key={club.id}>
+                <li key={club.club_id}>
                   <Link 
-                    to={`/clubs/${club.club_id}`} 
+                    to={`/club/${club.club_id}`} 
                     className="text-neutral-200 hover:text-primary transition-all duration-300 flex items-center group"
                   >
                     <span className="w-2 h-2 rounded-full bg-primary opacity-0 group-hover:opacity-100 mr-2 transition-opacity duration-300"></span>
@@ -48,7 +53,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div className="lg:col-span-1">
             <h3 className="text-xl font-bold text-primary relative pb-2">
               Contact Us
@@ -76,11 +80,20 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Copyright Section */}
         <div className="pt-10 border-t border-primary flex flex-col md:flex-row justify-between items-center">
           <p className="text-neutral-200 text-sm mb-4 md:mb-0">
             © {new Date().getFullYear()} ENSAF CLUBS. All rights reserved.
           </p>
+          <div className="text-neutral-200 text-md font-medium font-roboto mb-4 md:mb-0">
+            <p>
+              {visits.map(v => (
+                <span className='text-[#ffd085]  text-xl mr-3' key={v.id}>
+                  {v.count} 
+                </span>
+              ))}
+              Visitors Per Day 
+            </p>
+          </div>
           <div className="flex items-center gap-2 text-neutral-200">
             <span className="text-sm">Made with</span>
             <FaHeart className="text-red-500" />
