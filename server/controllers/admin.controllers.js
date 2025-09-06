@@ -231,4 +231,5 @@ export const updateAdminProfile = async (req, res)=>{
   }
 }
 }
+}
 

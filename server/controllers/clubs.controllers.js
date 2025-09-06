@@ -294,6 +294,8 @@ export const updateClub = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
+
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
   try {

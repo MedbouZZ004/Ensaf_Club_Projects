@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { FaUser, FaEnvelope, FaEdit, FaSave, FaTimes } from 'react-icons/fa'
 import { RiLockPasswordFill } from "react-icons/ri";
 import { toast } from 'react-toastify';
+import { PiUserFocusFill } from "react-icons/pi";
 
 const AdminProfile = () => {
   const [isEditing, setIsEditing] = useState(false)
@@ -74,6 +75,7 @@ const AdminProfile = () => {
       </div>
       
       <div className='flex justify-center'>
+        <div className='bg-white w-full  rounded-xl shadow-lg overflow-hidden border border-orange-200'>
         <div className='bg-white w-full md:w-4/5 rounded-xl shadow-lg overflow-hidden border border-orange-200'>
           <div className='bg-gradient-to-r from-orange-400/90 to-orange-400/80 p-6 text-white'>
             <div className='flex items-center'>
@@ -151,6 +153,17 @@ const AdminProfile = () => {
                   )}
                 </div>
               </div>
+              
+              <div className='flex items-center'>
+                <div className='bg-orange-100 p-3 rounded-lg mr-4'>
+                  <PiUserFocusFill className='text-xl text-orange-500' />
+                </div>
+                <div className='flex-1'>
+                  <label className='block text-sm font-medium text-gray-600 mb-1'>Role</label>
+                  <p className='text-lg text-gray-800'>ADMIN</p>
+                </div>
+              </div>
+
             </div>
             
             <div className='flex justify-end space-x-4 pt-4 border-t border-gray-100'>
@@ -186,6 +199,8 @@ const AdminProfile = () => {
       </div>
       
     </div>
+  )
+}
 
 
 export default AdminProfile

@@ -228,6 +228,7 @@ const AddAndEditClubPage = () => {
     // Call updateClub from store
     const result = await updateClub(clubId, payload);
     return result;
+
   // Edit handler (placeholder until update API is available)
   async function handleEditSubmit(){
     return {success:false, message:'Edit flow not implemented yet.'}
@@ -249,6 +250,7 @@ const AddAndEditClubPage = () => {
     encType="multipart/form-data"
     action={isEditMode ? formEditAction : formAddAction}
     className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
   encType="multipart/form-data"
   action={isEditMode ? formEditAction : formAddAction}
       className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -283,6 +285,7 @@ const AddAndEditClubPage = () => {
                 rows={5}
                 name="clubDescription"
                 placeholder={clubId ? 'Enter the new club description...' : 'Enter club description...'}
+
                 placeholder="Enter club description..."
                 required
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -311,6 +314,7 @@ const AddAndEditClubPage = () => {
 
               {numberOfCategories > 0 && (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {Array.from({ length: numberOfCategories }, (_, index) => (
                     <div key={index}>
@@ -360,7 +364,9 @@ const AddAndEditClubPage = () => {
                   name="linkedin"
                   placeholder={clubId ? 'Enter the new LinkedIn link...' : 'Enter LinkedIn link...'}
 
+
                   placeholder="Enter LinkedIn link..."
+
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
               </div>
@@ -418,6 +424,7 @@ const AddAndEditClubPage = () => {
                   name="clubVideo"
                   className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
+
               </div>
             </div>
             <div className="space-y-3">
@@ -459,6 +466,7 @@ const AddAndEditClubPage = () => {
                         <input id={`image-${index}`} name="clubMainImages" type="file" accept="image/*" className="sr-only" onChange={handleClubImageChange(index)} ref={(el)=> (imageInputRefs.current[index] = el)} required={!isEditMode} />
                       </label>
 
+
                       {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
                       </label>
                       <input
@@ -474,7 +482,6 @@ const AddAndEditClubPage = () => {
                 </div>
               )}
             </div>
-          
 
           </div>
         </section>
@@ -527,6 +534,7 @@ const AddAndEditClubPage = () => {
               {isEditMode && (
                 <p className="text-xs text-gray-500 mt-1">Leave blank to keep the current password.</p>
               )}
+
                 required
                 name="adminPassword"
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -564,5 +572,4 @@ const AddAndEditClubPage = () => {
     </main>
   )
 }
-
 export default AddAndEditClubPage;
