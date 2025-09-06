@@ -2,6 +2,23 @@ import React from 'react'
 import { useActionState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import useClubsStore from '../store/useClubsStore'
+
+const AddAndEditClubPage = () => {
+  const {addClub, updateClub, clubs} = useClubsStore();
+  const categoriesNumbers = [1, 2, 3, 4, 5, 6];
+  const imageNumbers = [1, 2, 3, 4, 5, 6];
+  const [numberOfCategories, setNumberOfCategories] = React.useState(0);
+  const [numberOfImages, setNumberOfImages] = React.useState(0);
+  const [categoriesValues, setCategoriesValues] = React.useState([]);
+  const [existingMedia, setExistingMedia] = React.useState({ logo: '', video: '', images: [] });
+  // Previews shown inside inputs
+  const [logoPreview, setLogoPreview] = React.useState(null);
+  const [videoPreview, setVideoPreview] = React.useState(null);
+  const [imagesPreviews, setImagesPreviews] = React.useState([]);
+  // Refs for file inputs
+  const logoInputRef = React.useRef(null);
+  const videoInputRef = React.useRef(null);
+  const imageInputRefs = React.useRef([]);
 const AddAndEditClubPage = () => {
   const {addClub} = useClubsStore();
   const categoriesNumbers = [1, 2, 3, 4, 5, 6];
@@ -12,6 +29,114 @@ const AddAndEditClubPage = () => {
   const clubId = searchParams.get("id");
   const isEditMode = Boolean(clubId);
 
+  // Form refs for prefill
+  const formRef = React.useRef();
+
+  // Prefill logic for edit mode
+  React.useEffect(() => {
+    if (!isEditMode || !clubId) return;
+    let mounted = true;
+    const load = async () => {
+      const fromStore = Array.isArray(clubs)
+        ? clubs.find(c => String(c.club_id) === String(clubId))
+        : null;
+      const adminFullName = fromStore?.admin?.full_name || '';
+      const adminEmail = fromStore?.admin?.email || '';
+      try {
+        const res = await fetch(`/api/clubs/${clubId}`, { credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to load club');
+        if (!mounted) return;
+        // Prefill fields from detailed API
+        if (formRef.current) {
+          formRef.current.clubName.value = data.name || fromStore?.name || '';
+          formRef.current.clubDescription.value = data.description || fromStore?.description || '';
+          if (formRef.current.instagram) formRef.current.instagram.value = data.instagram_link || '';
+          if (formRef.current.linkedin) formRef.current.linkedin.value = data.linkedin_link || '';
+          if (formRef.current.adminName) formRef.current.adminName.value = adminFullName;
+          if (formRef.current.adminEmail) formRef.current.adminEmail.value = adminEmail;
+        }
+        // Categories from store list endpoint
+        const cats = Array.isArray(fromStore?.categories) ? fromStore.categories : [];
+        setNumberOfCategories(cats.length);
+        setCategoriesValues(cats);
+    // Media previews
+  setExistingMedia({
+          logo: data.logo || fromStore?.logo || '',
+          video: data.short_video || '',
+          images: Array.isArray(data.club_images) ? data.club_images : []
+        });
+  const imgsLen = Array.isArray(data.club_images) ? data.club_images.length : 0;
+  setNumberOfImages(imgsLen);
+  setLogoPreview(data.logo || fromStore?.logo || null);
+  setVideoPreview(data.short_video || null);
+  setImagesPreviews(Array.isArray(data.club_images) ? data.club_images : []);
+  } catch {
+        // Fallback to store-only data
+        if (formRef.current && fromStore) {
+          formRef.current.clubName.value = fromStore.name || '';
+          formRef.current.clubDescription.value = fromStore.description || '';
+          if (formRef.current.instagram) formRef.current.instagram.value = fromStore.instagram_link || '';
+          if (formRef.current.linkedin) formRef.current.linkedin.value = fromStore.linkedin_link || '';
+          if (formRef.current.adminName) formRef.current.adminName.value = adminFullName;
+          if (formRef.current.adminEmail) formRef.current.adminEmail.value = adminEmail;
+        }
+        const cats = Array.isArray(fromStore?.categories) ? fromStore.categories : [];
+        setNumberOfCategories(cats.length);
+        setCategoriesValues(cats);
+  setExistingMedia({ logo: fromStore?.logo || '', video: '', images: [] });
+  setNumberOfImages(0);
+  setLogoPreview(fromStore?.logo || null);
+  setVideoPreview(null);
+  setImagesPreviews([]);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [isEditMode, clubId, clubs]);
+
+  // Handlers for previews
+  const handleLogoChange = (e) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      if (logoPreview && typeof logoPreview === 'string' && logoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(logoPreview);
+      }
+      setLogoPreview(URL.createObjectURL(f));
+    }
+  };
+  const handleVideoChange = (e) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      if (videoPreview && typeof videoPreview === 'string' && videoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(videoPreview);
+      }
+      setVideoPreview(URL.createObjectURL(f));
+    }
+  };
+  const handleClubImageChange = (index) => (e) => {
+    const f = e.target.files?.[0];
+    setImagesPreviews((prev) => {
+      const next = Array.from({ length: Math.max(prev.length, numberOfImages) }, (_, i) => prev[i] ?? null);
+      if (next[index] && typeof next[index] === 'string' && next[index].startsWith('blob:')) {
+        URL.revokeObjectURL(next[index]);
+      }
+      next[index] = f ? URL.createObjectURL(f) : next[index];
+      return next;
+    });
+  };
+  React.useEffect(() => () => {
+    if (logoPreview && typeof logoPreview === 'string' && logoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(logoPreview);
+    }
+    if (videoPreview && typeof videoPreview === 'string' && videoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    imagesPreviews.forEach((u) => {
+      if (u && typeof u === 'string' && u.startsWith('blob:')) URL.revokeObjectURL(u);
+    });
+  }, [logoPreview, videoPreview, imagesPreviews]);
+
   // Add handler
   async function handleAddSubmit(prevState, formData){
     const clubName = formData.get("clubName");
@@ -21,6 +146,15 @@ const AddAndEditClubPage = () => {
     );
   const clubMainImages = formData.getAll('clubMainImages')
 
+  const linkedIn = formData.get("linkedin");
+  const instagram = formData.get("instagram");
+
+  const clubLogo = formData.get("clubLogo");
+  const clubVideo = formData.get("clubVideo");
+  const adminName = formData.get("adminName");
+  const adminEmail = formData.get("adminEmail");
+  const adminPassword = formData.get("adminPassword");
+  const confirmPassword = formData.get("confirmPassword");
     const linkedIn = formData.get("linkedin");
     const instagram = formData.get("instagram");
 
@@ -50,6 +184,50 @@ const AddAndEditClubPage = () => {
     return result;
   }
 
+
+  // Edit handler
+  async function handleEditSubmit(prevState, formData) {
+    // Build FormData for PUT
+    const clubName = formData.get("clubName");
+    const clubDescription = formData.get("clubDescription");
+    const categories = Array.from({ length: numberOfCategories }, (_, index) =>
+      formData.get(`category-${index}`)
+    );
+  // We'll read files per slot below; no need to prefetch here
+    const linkedIn = formData.get("linkedin");
+    const instagram = formData.get("instagram");
+    const clubLogo = formData.get("clubLogo");
+    const clubVideo = formData.get("clubVideo");
+    const adminName = formData.get("adminName");
+    const adminEmail = formData.get("adminEmail");
+    const adminPassword = formData.get("adminPassword");
+    // Build multipart form data for upload
+    const payload = new FormData();
+    if (clubName) payload.append('name', clubName);
+    if (clubDescription) payload.append('description', clubDescription);
+    categories.forEach((c) => c && payload.append('categories', c));
+    if (linkedIn) payload.append('linkedin_link', linkedIn);
+    if (instagram) payload.append('instagram_link', instagram);
+    if (clubLogo && clubLogo.size > 0) payload.append('clubLogo', clubLogo);
+    // Build replacement mapping by slot order using refs, so order stays aligned
+    const rt = [];
+    for (let i = 0; i < numberOfImages; i++) {
+      const el = imageInputRefs.current?.[i];
+      const file = el?.files?.[0];
+      if (file) {
+        payload.append('clubMainImages', file);
+        const target = existingMedia.images?.[i] || '';
+        rt.push(target);
+      }
+    }
+    if (rt.length) payload.append('replaceTargets', JSON.stringify(rt));
+    if (clubVideo && clubVideo.size > 0) payload.append('clubVideo', clubVideo);
+    if (adminName) payload.append('adminName', adminName);
+    if (adminEmail) payload.append('adminEmail', adminEmail);
+    if (adminPassword) payload.append('adminPassword', adminPassword);
+    // Call updateClub from store
+    const result = await updateClub(clubId, payload);
+    return result;
   // Edit handler (placeholder until update API is available)
   async function handleEditSubmit(){
     return {success:false, message:'Edit flow not implemented yet.'}
@@ -67,6 +245,10 @@ const AddAndEditClubPage = () => {
       </div>
 
   <form 
+    ref={formRef}
+    encType="multipart/form-data"
+    action={isEditMode ? formEditAction : formAddAction}
+    className="grid grid-cols-1 lg:grid-cols-12 gap-6">
   encType="multipart/form-data"
   action={isEditMode ? formEditAction : formAddAction}
       className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -82,6 +264,8 @@ const AddAndEditClubPage = () => {
               <input
                 id="clubName"
                 type="text"
+                placeholder={clubId ? 'Enter the new club name...' : 'Enter club name...'}
+
                 placeholder="Enter club name..."
                 required
                 name="clubName"
@@ -98,6 +282,7 @@ const AddAndEditClubPage = () => {
                 id="clubDescription"
                 rows={5}
                 name="clubDescription"
+                placeholder={clubId ? 'Enter the new club description...' : 'Enter club description...'}
                 placeholder="Enter club description..."
                 required
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -125,6 +310,7 @@ const AddAndEditClubPage = () => {
               </div>
 
               {numberOfCategories > 0 && (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {Array.from({ length: numberOfCategories }, (_, index) => (
                     <div key={index}>
@@ -135,6 +321,9 @@ const AddAndEditClubPage = () => {
                         id={`category-${index}`}
                         type="text"
                         name={`category-${index}`}
+      defaultValue={categoriesValues[index] || ''}
+      placeholder={clubId ? `Enter the new category ${index + 1} name...` : `Enter category ${index + 1} name...`}
+
                         placeholder="Enter category name..."
                         required
                         className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -153,7 +342,10 @@ const AddAndEditClubPage = () => {
                 <input
                   id="instagram"
                   type="url"
+                  placeholder={clubId ? 'Enter the new Instagram link...' : 'Enter Instagram link...'}
+
                   placeholder="Enter Instagram link..."
+ 
                   name="instagram"
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
@@ -166,6 +358,8 @@ const AddAndEditClubPage = () => {
                   id="linkedin"
                   type="url"
                   name="linkedin"
+                  placeholder={clubId ? 'Enter the new LinkedIn link...' : 'Enter LinkedIn link...'}
+
                   placeholder="Enter LinkedIn link..."
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
@@ -178,6 +372,18 @@ const AddAndEditClubPage = () => {
                 <label htmlFor="clubLogo" className="block text-sm font-medium text-gray-700 mb-1">
                   {clubId ? 'Edit Club Logo' : 'Club Logo'}
                 </label>
+                <label htmlFor="clubLogo" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Logo preview" className="absolute inset-0 h-full w-full object-contain" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                      <p className="text-xs text-orange-500">Click to upload</p>
+                    </div>
+                  )}
+                  <input id="clubLogo" name="clubLogo" type="file" accept="image/*" className="sr-only" onChange={handleLogoChange} ref={logoInputRef} required={!isEditMode} />
+                </label>
+
                 <input
                   id="clubLogo"
                   type="file"
@@ -186,11 +392,24 @@ const AddAndEditClubPage = () => {
                   name="clubLogo"
                   className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
                 />
+ 
               </div>
               <div>
                 <label htmlFor="clubVideo" className="block text-sm font-medium text-gray-700 mb-1">
                   {clubId ? 'Edit Club Video' : 'Club Video'}
                 </label>
+                <label htmlFor="clubVideo" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
+                  {videoPreview ? (
+                    <video src={videoPreview} className="absolute inset-0 h-full w-full object-cover" controls />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14" /></svg>
+                      <p className="text-xs text-orange-500">Click to upload</p>
+                    </div>
+                  )}
+                  <input id="clubVideo" name="clubVideo" type="file" accept="video/*" className="sr-only" onChange={handleVideoChange} ref={videoInputRef} required={!isEditMode} />
+                </label>
+
                 <input
                   id="clubVideo"
                   type="file"
@@ -226,6 +445,20 @@ const AddAndEditClubPage = () => {
                   {Array.from({ length: numberOfImages }, (_, index) => (
                     <div key={index}>
                       <label htmlFor={`image-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
+                      </label>
+                      <label htmlFor={`image-${index}`} className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
+                        {imagesPreviews[index] ? (
+                          <img src={imagesPreviews[index]} alt={`Image ${index+1} preview`} className="absolute inset-0 h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            <p className="text-xs text-orange-500">Click to upload</p>
+                          </div>
+                        )}
+                        <input id={`image-${index}`} name="clubMainImages" type="file" accept="image/*" className="sr-only" onChange={handleClubImageChange(index)} ref={(el)=> (imageInputRefs.current[index] = el)} required={!isEditMode} />
+                      </label>
+
                       {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
                       </label>
                       <input
@@ -241,6 +474,8 @@ const AddAndEditClubPage = () => {
                 </div>
               )}
             </div>
+          
+
           </div>
         </section>
 
@@ -285,6 +520,13 @@ const AddAndEditClubPage = () => {
                 id="adminPassword"
                 type="password"
                 placeholder="Enter admin password..."
+                required={!isEditMode}
+                name="adminPassword"
+                className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
+              />
+              {isEditMode && (
+                <p className="text-xs text-gray-500 mt-1">Leave blank to keep the current password.</p>
+              )}
                 required
                 name="adminPassword"
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"

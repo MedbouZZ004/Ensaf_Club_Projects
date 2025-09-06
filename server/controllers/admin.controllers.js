@@ -162,5 +162,73 @@ export const getStatistics = async(req,res)=>{
       message: "Server Error",
     });
   }
+};
+
+export const getAdminProfile = async (req, res)=>{
+  try {
+    const admin_id = req.admin.admin_id;
+    const [rows]=await pool.query('SELECT admin_id,full_name,email FROM admins WHERE admin_id=?',[admin_id]);
+    if(rows.length === 0){
+      return res.status(404).json({
+        success:false,
+        message:"Admin not found"});
+    }
+
+    const admin = rows[0];
+    res.status(200).json({
+      success:true,
+      data:admin
+    });
+  }
+  catch(err){
+    console.error("Error fetching admin profile:", err);
+    res.status(500).json({
+      success:false,
+      message:"Internal server error"
+    });
+  }
+}
+export const updateAdminProfile = async (req, res)=>{
+  try {
+    const admin_id = req.admin.admin_id;
+  const { full_name, email, password } = req.body || {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  if(!full_name || !email){
+      return res.status(400).json({ success: false, message: 'Full name and email are required' });
+    }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+    // If password is provided (non-empty), validate it
+    const willUpdatePassword = typeof password === 'string' && password.trim().length > 0;
+    if (willUpdatePassword && !passwordRegex.test(password)) {
+      return res.status(400).json({ success: false, message: 'Invalid password format, it must be at least 8 characters long and contain at least one letter and one number.' });
+    }
+    // Check if the email is already taken by another admin
+    const [existingAdmins] = await pool.query('SELECT * FROM admins WHERE email = ? AND admin_id != ?', [email, admin_id]);
+    if (existingAdmins.length > 0) {
+      return res.status(409).json({ success: false, message: 'Email is already in use by another admin' });
+    }
+    if (willUpdatePassword) {
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      // Update the admin profile including password
+      await pool.query('UPDATE admins SET full_name = ?, email = ?, password = ? WHERE admin_id = ?',
+        [full_name, email, hashedPassword, admin_id]);
+    } else {
+      // Update without changing password
+      await pool.query('UPDATE admins SET full_name = ?, email = ? WHERE admin_id = ?',
+        [full_name, email, admin_id]);
+    }
+    res.status(200).json({ success: true, message: 'Profile updated successfully' });
+
+    }catch(err){
+    console.error('Error while updating the admin profile:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+
+  }
+}
 }
 

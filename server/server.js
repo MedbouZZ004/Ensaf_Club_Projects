@@ -22,6 +22,7 @@ server.use(cors({
 }))
 server.use(cookieParser());
 server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
 // Apply a gentle global rate limiter
 server.use(globalLimiter);
 // Make the uploads folder accessible via HTTP
