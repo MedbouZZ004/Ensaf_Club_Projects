@@ -32,11 +32,7 @@ const BoardMemberCard = ({ boardMember }) => {
         
         <div className='mt-auto flex justify-between items-center pt-3 border-t border-gray-100'>
           <div className='flex space-x-2'>
-<<<<<<< HEAD
             <button onClick={()=> navigate(`/club-board-members/add-edit-board-member?memberId=${boardMember.id}`)} title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
-=======
-            <button onClick={()=> navigate(`/club-board-members/add-board-member?memberId=${boardMember.id}`)} title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               <FaEdit className='text-sm' />
             </button>
             <button 

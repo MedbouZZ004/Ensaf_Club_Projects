@@ -36,11 +36,6 @@ const ClubStatistics = () => {
   const clubsCount = Number.isFinite(stats?.clubs_count) ? stats.clubs_count : clubs.length
   const lastActivityDate = stats?.last_activity_date ?? null
   const primaryClub = clubs.length > 0 ? clubs[0] : null
-<<<<<<< HEAD
-=======
-
-  if(!stats) return <p className='flex w-full h-screen items-center justify-center font-semibold text-xl'>No statistics available</p>
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
   return (
     <div className="px-6 py-8 h-screen overflow-y-auto">
       {/* Header */}
@@ -57,16 +52,6 @@ const ClubStatistics = () => {
       { title: "Activities", value: activities, icon: <FaCalendar /> },
       { title: "Board Members", value: boardMembers, icon: <FaUsers /> },
       { title: "Categories", value: categoriesCount, icon: <FaTag /> },
-<<<<<<< HEAD
-=======
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {[
-          { title: "Total Clubs", value: stats.clubs_count, icon: <FaChartBar /> },
-          { title: "Activities", value: stats.counters?.activities, icon: <FaCalendar /> },
-          { title: "Board Members", value: stats?.counters.board_members, icon: <FaUsers /> },
-          { title: "Categories", value: stats.counters?.categories_count, icon: <FaTag /> },
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
         ].map((item, idx) => (
           <div 
             key={idx} 
@@ -97,15 +82,6 @@ const ClubStatistics = () => {
         { title: "Likes", value: likes, icon: <FaHeart /> },
         { title: "Views", value: views, icon: <FaEye /> },
         { title: "Reviews", value: reviews, icon: <FaComment /> },
-<<<<<<< HEAD
-=======
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { title: "Likes", value: stats.counters.likes, icon: <FaHeart /> },
-              { title: "Views", value: stats.counters.views, icon: <FaEye /> },
-              { title: "Reviews", value: stats.counters.reviews, icon: <FaComment /> },
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
             ].map((item, idx) => (
               <div 
                 key={idx} 
@@ -131,11 +107,6 @@ const ClubStatistics = () => {
             {[
               { label: "Images", value: images, icon: <FaImage /> },
               { label: "Videos", value: videos, icon: <FaVideo /> },
-<<<<<<< HEAD
-=======
-              { label: "Images", value: stats.counters.media.images, icon: <FaImage /> },
-              { label: "Videos", value: stats.counters.media.videos, icon: <FaVideo /> },
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
             ].map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -152,11 +123,6 @@ const ClubStatistics = () => {
               <span className="text-gray-700 font-medium">Total Media</span>
               <span className="font-bold text-orange-400">
                 {images + videos}
-<<<<<<< HEAD
-=======
-
-                {stats.counters.media.images + stats.counters.media.videos}
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               </span>
             </div>
           </div>
@@ -173,11 +139,6 @@ const ClubStatistics = () => {
 
           <div className="flex flex-wrap gap-3">
             {categories.map((category, idx) => (
-<<<<<<< HEAD
-=======
-
-            {stats.categories.map((category, idx) => (
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               <span 
                 key={idx} 
                 className="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium hover:bg-orange-200 transition"
@@ -206,25 +167,12 @@ const ClubStatistics = () => {
                   month: 'long',
                   day: 'numeric'
                 }) : '-'}
-<<<<<<< HEAD
-=======
-                {new Date(stats.last_activity_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               </p>
             </div>
 
             <div className='flex gap-2 items-center'>
               <h3 className="text-lg font-medium text-orange-400">Club Name: </h3>
               <p className="text-gray-800  ">{primaryClub?.name ?? '-'}</p>
-<<<<<<< HEAD
-=======
-
-              <p className="text-gray-800  ">{stats.clubs[0].name}</p>
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
             </div>
 
             <div className='flex gap-2 items-center'>
@@ -235,14 +183,6 @@ const ClubStatistics = () => {
                   month: 'long',
                   day: 'numeric'
                 }) : '-'}
-<<<<<<< HEAD
-=======
-                {new Date(stats.clubs[0].created_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
               </p>
             </div>
           </div>
