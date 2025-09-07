@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import globalLimiter from './middlewares/rateLimiter.js';
 import pool from './db/connectDB.js';
+import multer from 'multer';
 
 
 dotenv.config();
@@ -59,6 +60,15 @@ server.get("/api/visits", async (req, res) => {
   res.json(rows);
 });
 
+
+// Global error handler to ensure JSON responses (including Multer errors)
+server.use((err, req, res, next) => {
+  if (!err) return next();
+  console.error('API Error:', err);
+  const isMulter = err instanceof multer.MulterError || err?.name === 'MulterError';
+  const status = err.status || (isMulter ? 400 : 400);
+  res.status(status).json({ success: false, message: err.message || 'Request failed' });
+});
 
 server.listen(PORT , ()=>{
     console.log(`Listen at ${PORT}`);

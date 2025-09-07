@@ -86,11 +86,9 @@ const Footer = () => {
           </p>
           <div className="text-neutral-200 text-md font-medium font-roboto mb-4 md:mb-0">
             <p>
-              {visits.map(v => (
-                <span className='text-[#ffd085]  text-xl mr-3' key={v.id}>
-                  {v.count} 
+                <span className='text-[#ffd085]  text-xl mr-3'>
+                  {visits[0]?.count || 0}
                 </span>
-              ))}
               Visitors Per Day 
             </p>
           </div>

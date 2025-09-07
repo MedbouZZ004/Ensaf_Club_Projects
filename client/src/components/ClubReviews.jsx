@@ -39,6 +39,7 @@ const ClubReviews = ({reviews = [], club_id}) => {
           <FaAngleLeft />
         </button>
         <div className='flex-1 scroll_reviews overflow-hidden'>
+          {reviews.length !== 0 ? (
           <div
             ref={scrollRef}
             className='scroll_reviews flex gap-3 py-3 items-stretch overflow-x-auto scroll-smooth snap-x snap-mandatory'
@@ -53,6 +54,9 @@ const ClubReviews = ({reviews = [], club_id}) => {
               />
             ))}
           </div>
+          ) : (<div className='flex items-center justify-center py-10'>
+          <p className='text-white'>No reviews yet.</p>
+        </div>) }
         </div>
         <button
           type='button'

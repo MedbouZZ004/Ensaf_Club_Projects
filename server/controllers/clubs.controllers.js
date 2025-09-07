@@ -323,10 +323,6 @@ export const getAllClubsForHomePage = async (req, res) => {
       [req.user?.user_id ?? null]
     );
 
-    if (clubs.length === 0) {
-      return res.status(404).json({ message: "No clubs found." });
-    }
-
     // Fetch categories for all clubs
     const [categories] = await pool.query(`
       SELECT cc.club_id, ca.name AS category_name
