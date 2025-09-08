@@ -3,6 +3,14 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+// Broad image/video extension support (including HEIC/HEIF)
+const IMAGE_EXTS = new Set([
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg",
+  ".heic", ".heif", ".tif", ".tiff"
+]);
+const VIDEO_EXTS = new Set([
+  ".mp4", ".webm", ".mov", ".mkv", ".avi", ".3gp", ".m4v", ".mpeg", ".mpg", ".ogv", ".ogg", ".wmv", ".flv"
+]);
 const IMAGE_MIMES = new Set([
   "image/jpeg",
   "image/png",
@@ -52,6 +60,15 @@ const isVideo = (file) => {
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let dest = null;
+    const ext = (path.extname(file.originalname || "").toLowerCase()) || "";
+    if (file.mimetype.startsWith("image") || IMAGE_EXTS.has(ext)) {
+      dest = "uploads/images";
+    } else if (file.mimetype.startsWith("video") || VIDEO_EXTS.has(ext)) {
+      dest = "uploads/videos";
+    } else {
+      return cb(new Error("Only images and videos are allowed!"), false);
+    }
+    try { fs.mkdirSync(dest, { recursive: true }); } catch {}
     // Prefer field names when available
     if (file.fieldname === "clubLogo") dest = "uploads/logo";
     else if (file.fieldname === "clubMainImages") dest = "uploads/images";
@@ -73,6 +90,12 @@ const storage = multer.diskStorage({
 
 // File filter (optional)
 const fileFilter = (req, file, cb) => {
+  const ext = (path.extname(file.originalname || "").toLowerCase()) || "";
+  const isImage = file.mimetype.startsWith("image") || IMAGE_EXTS.has(ext);
+  const isVideo = file.mimetype.startsWith("video") || VIDEO_EXTS.has(ext);
+  if (isImage || isVideo) return cb(null, true);
+  return cb(new Error("Invalid file type. Allowed images (incl. HEIC/HEIF) and common videos."), false);
+
   if (isImage(file) || isVideo(file)) return cb(null, true);
   return cb(new Error("Invalid file type. Allowed: images (jpg, png, webp, gif, svg) and videos (mp4, webm, mov, mkv, avi, more)."), false);
 };

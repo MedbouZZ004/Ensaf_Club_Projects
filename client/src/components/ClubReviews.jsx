@@ -19,9 +19,9 @@ const ClubReviews = ({reviews = [], club_id}) => {
       <div aria-hidden className="pointer-events-none absolute -bottom-16 -right-10 w-[50vw] max-w-[340px] h-[50vw] max-h-[340px] rounded-full bg-orange-200/20 blur-[140px]" />
       <h2 className='text-primary font-roboto  text-4xl font-bold mb-4'>CLUB TESTIMONIALS</h2>
       <p
-       className='flex w-full items-center gap-2 text-red-500 font-roboto'
+       className='flex w-full items-center gap-2 text-yellow-500 font-roboto'
       >
-       <IoMdAlert  size={20}/> You can only make one review!</p>
+       <IoMdAlert  size={20}/> You can only make one review !</p>
       <div className='w-full flex justify-end'>
         <button
           onClick={() => setOpenReviewForm(true)}
@@ -30,14 +30,14 @@ const ClubReviews = ({reviews = [], club_id}) => {
         </button>
       </div>
       <div className='flex items-center scroll justify-between gap-2 mt-3'>
-        <button
+        {reviews.length > 0 && <button
           type='button'
           aria-label='Scroll reviews left'
           onClick={() => handleScroll(-1)}
           className='grid place-items-center w-10 h-10 rounded-full border border-orange-300/40 text-neutral-800 bg-background-color hover:text-white/80 hover:bg-orange-300 transition'
         >
           <FaAngleLeft />
-        </button>
+        </button>  }
         <div className='flex-1 scroll_reviews overflow-hidden'>
           {reviews.length !== 0 ? (
           <div
@@ -55,17 +55,17 @@ const ClubReviews = ({reviews = [], club_id}) => {
             ))}
           </div>
           ) : (<div className='flex items-center justify-center py-10'>
-          <p className='text-white'>No reviews yet.</p>
+          <p className='text-neutral-400 font-roboto font-medium text-xl'>No reviews yet.</p>
         </div>) }
         </div>
-        <button
+        {reviews.length > 0 && <button
           type='button'
           aria-label='Scroll reviews right'
           onClick={() => handleScroll(1)}
           className='grid place-items-center w-10 h-10 rounded-full border border-orange-300/40 text-neutral-800 bg-background-color hover:text-white/80 hover:bg-orange-300 transition'
         >
           <FaAngleRight />
-        </button>
+        </button>}
       </div>
     </div>
   )
