@@ -36,7 +36,7 @@ const NavBar = () => {
       {openUserMenu && <UserCard 
       setOpenUserMenu={setOpenUserMenu}
       user={user} />}
-       <div
+      <div
         aria-hidden
         className='pointer-events-none absolute z-0 top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/30 rounded-full blur-[130px]'
       />
@@ -44,33 +44,7 @@ const NavBar = () => {
         <img className='w-16 sm:w-20' src="/logo.png" alt="Logo" />
       </Link>
 
-      <div className='hidden md:flex items-center w-[60%] justify-between gap-6'>
-        <div className='relative ml-25'>
-          <button
-            className='text-[#FFC58D] font-roboto flex items-center gap-2 cursor-pointer text-base'
-            onClick={() => setIsOpen(!isOpen)}
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            aria-label="Select language"
-          >
-          <MdOutlineTranslate /> {selectedLanguage.name} {isOpen ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />}
-          </button>
-          {isOpen && (
-            <div className='absolute bg-neutral-900 flex flex-col top-10 right-0 border-1 border-orange-300/50 overflow-hidden rounded-xl  min-w-20'>
-              {languages.map(lang => (
-                <button 
-                  onClick={()=>{ setSelectedLanguage(lang); setIsOpen(false); }}
-                  key={lang.id}
-                  role="option"
-                  aria-selected={selectedLanguage.id === lang.id}
-                  className='text-white text-left hover:bg-gray-700 px-4 py-2 cursor-pointer w-full'
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className='hidden md:flex'>
         {
           user?
           <button
@@ -91,7 +65,9 @@ const NavBar = () => {
       <button
         type='button'
         className='md:hidden inline-flex items-center justify-center rounded-md px-3 py-2 text-[#FFC58D]'
-        onClick={() => setMobileOpen(v => !v)}
+        onClick={() => {setMobileOpen(v => !v)
+          setOpenUserMenu(false);
+        }}
         aria-label='Toggle menu'
         aria-controls='mobile-nav'
         aria-expanded={mobileOpen}
@@ -102,23 +78,11 @@ const NavBar = () => {
       {mobileOpen && (
         <div id='mobile-nav' className='md:hidden absolute right-2 top-full mt-2'>
           <div className='w-40 rounded-lg border-1 border-orange-300/40 bg-neutral-900/85 backdrop-blur-md p-2.5 shadow-md shadow-orange-200/10'>
-            <div className='flex flex-col gap-1.5'>
-              <div className='flex flex-col gap-1'>
-                <MdOutlineTranslate className='text-orange-300 mb-2' size={20} />
-                <div className='flex gap-1.5 flex-wrap'>
-                  {languages.map(lang => (
-                    <button
-                      key={lang.id}
-                      onClick={() => setSelectedLanguage(lang)}
-                      className={`px-1.5 py-0.5 rounded-md border-1 text-[10px] ${selectedLanguage.id === lang.id ? 'border-orange-300/80 bg-neutral-800 text-orange-200' : 'border-orange-300/40 text-[#FFC58D]'}`}
-                    >
-                      {lang.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <div className='flex flex-col items-center gap-1.5'>
               {user ? 
-              <button className='text-[#FFC58D] gap-2 flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 px-4 py-1.5 rounded-lg shadow-orange-200 shadow-xs '>
+              <button 
+              onClick={()=>{setOpenUserMenu(v => !v); setMobileOpen(false);}}
+              className='text-[#FFC58D] gap-2 justify-center  flex items-center cursor-pointer bg-neutral-800 border-1 border-orange-300/60 w-10 h-10 rounded-full shadow-orange-200 shadow-xs '>
                 <FaUser />
               </button>
               :
@@ -128,6 +92,8 @@ const NavBar = () => {
               >
                 Login <FiLogIn size={14}/>
               </button>}
+          
+           
             </div>
           </div>
         </div>

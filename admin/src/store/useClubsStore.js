@@ -197,9 +197,6 @@ const useClubsStore = create((set) => ({
 <<<<<<< HEAD
 =======
    updateBoardMember: async(memberId, formData)=>{
-
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
-    updateBoardMember: async(memberId, formData)=>{
         try{
                 const res = await fetch(`/api/clubs/boardMembers/${memberId}`, {
                         method:'PUT',

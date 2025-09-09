@@ -40,7 +40,7 @@ const ClubBoardMembers = () => {
       onChange={(e)=>setQuery(e.target.value)}
           />
           <button
-          onClick={() => navigate("add-board-member")}
+          onClick={() => navigate("add-edit-board-member")}
           title="ADD New Board Member"
           className="bg-orange-400 hover:bg-orange-400/80 cursor-pointer text-white px-4 py-2 rounded-lg font-bold text-lg transition">+</button>
         </div>

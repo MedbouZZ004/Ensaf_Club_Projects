@@ -47,8 +47,6 @@ const ClubStatistics = () => {
   const clubsCount = Number.isFinite(stats?.clubs_count) ? stats.clubs_count : clubs.length
   const lastActivityDate = stats?.last_activity_date ?? null
   const primaryClub = clubs.length > 0 ? clubs[0] : null
-
-  if(!stats) return <p className='flex w-full h-screen items-center justify-center font-semibold text-xl'>No statistics available</p>
   return (
     <div className="px-6 py-8 h-screen overflow-y-auto">
       {/* Header */}
@@ -65,13 +63,6 @@ const ClubStatistics = () => {
       { title: "Activities", value: activities, icon: <FaCalendar /> },
       { title: "Board Members", value: boardMembers, icon: <FaUsers /> },
       { title: "Categories", value: categoriesCount, icon: <FaTag /> },
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        {[
-          { title: "Total Clubs", value: stats.clubs_count, icon: <FaChartBar /> },
-          { title: "Activities", value: stats.counters?.activities, icon: <FaCalendar /> },
-          { title: "Board Members", value: stats?.counters.board_members, icon: <FaUsers /> },
-          { title: "Categories", value: stats.counters?.categories_count, icon: <FaTag /> },
         ].map((item, idx) => (
           <div 
             key={idx} 
@@ -102,12 +93,6 @@ const ClubStatistics = () => {
         { title: "Likes", value: likes, icon: <FaHeart /> },
         { title: "Views", value: views, icon: <FaEye /> },
         { title: "Reviews", value: reviews, icon: <FaComment /> },
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { title: "Likes", value: stats.counters.likes, icon: <FaHeart /> },
-              { title: "Views", value: stats.counters.views, icon: <FaEye /> },
-              { title: "Reviews", value: stats.counters.reviews, icon: <FaComment /> },
             ].map((item, idx) => (
               <div 
                 key={idx} 
@@ -133,8 +118,6 @@ const ClubStatistics = () => {
             {[
               { label: "Images", value: images, icon: <FaImage /> },
               { label: "Videos", value: videos, icon: <FaVideo /> },
-              { label: "Images", value: stats.counters.media.images, icon: <FaImage /> },
-              { label: "Videos", value: stats.counters.media.videos, icon: <FaVideo /> },
             ].map((item, idx) => (
               <div key={idx} className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -151,8 +134,6 @@ const ClubStatistics = () => {
               <span className="text-gray-700 font-medium">Total Media</span>
               <span className="font-bold text-orange-400">
                 {images + videos}
-
-                {stats.counters.media.images + stats.counters.media.videos}
               </span>
             </div>
           </div>
@@ -169,8 +150,6 @@ const ClubStatistics = () => {
 
           <div className="flex flex-wrap gap-3">
             {categories.map((category, idx) => (
-
-            {stats.categories.map((category, idx) => (
               <span 
                 key={idx} 
                 className="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium hover:bg-orange-200 transition"
@@ -199,19 +178,12 @@ const ClubStatistics = () => {
                   month: 'long',
                   day: 'numeric'
                 }) : '-'}
-                {new Date(stats.last_activity_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
               </p>
             </div>
 
             <div className='flex gap-2 items-center'>
               <h3 className="text-lg font-medium text-orange-400">Club Name: </h3>
               <p className="text-gray-800  ">{primaryClub?.name ?? '-'}</p>
-
-              <p className="text-gray-800  ">{stats.clubs[0].name}</p>
             </div>
 
             <div className='flex gap-2 items-center'>
@@ -222,11 +194,6 @@ const ClubStatistics = () => {
                   month: 'long',
                   day: 'numeric'
                 }) : '-'}
-                {new Date(stats.clubs[0].created_date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
               </p>
             </div>
           </div>

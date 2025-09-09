@@ -114,7 +114,6 @@ const SideBar = () => {
 
   return (
     <>
-      {/* Mobile toggle button */}
       <button
         className="lg:hidden fixed top-4 left-4 z-50 bg-orange-400 text-white p-2 rounded-md toggle-sidebar"
         onClick={() => setIsOpen(!isOpen)}
@@ -199,7 +198,7 @@ const SideBar = () => {
           <div className="flex items-center gap-3 px-2 py-2">
             <div className="w-8 relative h-8 rounded-full bg-orange-400 flex items-center justify-center text-white font-bold">
               <div className="w-3 rounded-full absolute right-0 bottom-0 h-3 bg-green-500"/>
-              <span>{role === 'superAdmin' ? 'S' : 'A'}</span>
+              {role === 'superAdmin' ? 'S' : 'A'}
             </div>
             <div className="overflow-hidden">
               <p className="text-sm font-medium text-gray-700 truncate">{user.fullname}</p>

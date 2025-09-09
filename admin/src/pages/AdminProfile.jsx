@@ -86,7 +86,6 @@ const AdminProfile = () => {
       
       <div className='flex justify-center'>
         <div className='bg-white w-full  rounded-xl shadow-lg overflow-hidden border border-orange-200'>
-        <div className='bg-white w-full md:w-4/5 rounded-xl shadow-lg overflow-hidden border border-orange-200'>
           <div className='bg-gradient-to-r from-orange-400/90 to-orange-400/80 p-6 text-white'>
             <div className='flex items-center'>
               <div className='w-20 h-20 rounded-full bg-white flex items-center justify-center mr-5'>
@@ -173,7 +172,6 @@ const AdminProfile = () => {
                   <p className='text-lg text-gray-800'>ADMIN</p>
                 </div>
               </div>
-
             </div>
             
             <div className='flex justify-end space-x-4 pt-4 border-t border-gray-100'>
@@ -212,6 +210,4 @@ const AdminProfile = () => {
   )
 }
 
-
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
 export default AdminProfile

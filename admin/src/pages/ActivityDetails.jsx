@@ -94,9 +94,9 @@ const ActivityDetails = () => {
                         <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
                             {/* Main selected image */}
                             <div className='lg:col-span-2'>
-                                <div className='rounded-lg  overflow-hidden shadow-sm shadow-gray-400'>
+                                <div className='rounded-lg w-[95%] overflow-hidden shadow-sm shadow-gray-400'>
                                     <img 
-                                        className='w-full h-96 object-cover' 
+                                        className='w-full h-96' 
                                         src={selectedImage} 
                                         alt="Selected activity" 
                                     />
@@ -116,7 +116,7 @@ const ActivityDetails = () => {
                                             onClick={() => setSelectedImage(img)}
                                         >
                                             <img 
-                                                className='w-full h-24 object-cover' 
+                                                className='w-full h-24 ' 
                                                 src={img} 
                                                 alt={`Activity ${index + 1}`} 
                                             />

@@ -18,7 +18,7 @@ const Motivation = () => {
           viewport={{ once: true, amount: 0.3 }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.45, ease: 'easeOut' }}
         >
-          <h1 className="font-roboto text-black/80 text-5xl font-bold text-wrap w-[100%]">UNFORGOTTEN MOMENT OF EFC</h1>
+          <h1 className="font-roboto text-black/80 text-5xl font-bold text-wrap w-[100%]">UNFORGOTTEN MOMENTS OF EFC</h1>
           <p className="font-roboto text-md w-[80%] text-black/60">With <span className='font-medium'>EFC</span>, we create memories that last a lifetime & inspire each other to reach new heights — through events, workshops, and shared projects that grow our skills, build friendships, & celebrate collaboration. Every moment is a chance to learn, lead, & belong.</p>
         </Motion.div>
         <Motion.div
@@ -59,11 +59,11 @@ const Motivation = () => {
       </div>
 
       {/* Second content  : */}
-      <div className='w-full flex items-center gap-4'>
+      <div className='w-full flex md:flex-row flex-col items-center gap-4'>
       
         <QuotesCard />
         <Motion.div
-          className='w-full lg:w-[60%] lg:ml-28 gap-8 items-start flex'
+          className='w-full md:w-[55%] lg:ml-28 gap-8 items-start flex'
           initial={prefersReducedMotion ? false : { opacity: 0, x: 20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.25 }}

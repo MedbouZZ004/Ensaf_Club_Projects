@@ -32,7 +32,7 @@ const BoardMemberCard = ({ boardMember }) => {
         
         <div className='mt-auto flex justify-between items-center pt-3 border-t border-gray-100'>
           <div className='flex space-x-2'>
-            <button onClick={()=> navigate(`/club-board-members/add-board-member?memberId=${boardMember.id}`)} title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
+            <button onClick={()=> navigate(`/club-board-members/add-edit-board-member?memberId=${boardMember.id}`)} title='Edit Member' className='p-2 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-500 hover:text-white transition-colors duration-200'>
               <FaEdit className='text-sm' />
             </button>
             <button 
@@ -41,10 +41,6 @@ const BoardMemberCard = ({ boardMember }) => {
               <FaTrash className='text-sm' />
             </button>
           </div>
-          
-          <span className='text-xs font-medium px-2 py-1 rounded-md bg-gray-100 text-gray-600'>
-            ID: {boardMember.id || 'N/A'}
-          </span>
         </div>
       </div>
     </div>

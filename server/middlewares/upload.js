@@ -1,21 +1,85 @@
 
-import multer  from "multer";
+import multer from "multer";
 import path from "path";
 import fs from "fs";
+
+// Broad image/video extension support (including HEIC/HEIF)
+const IMAGE_EXTS = new Set([
+  ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg",
+  ".heic", ".heif", ".tif", ".tiff"
+]);
+const VIDEO_EXTS = new Set([
+  ".mp4", ".webm", ".mov", ".mkv", ".avi", ".3gp", ".m4v", ".mpeg", ".mpg", ".ogv", ".ogg", ".wmv", ".flv"
+]);
+const IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+]);
+
+const VIDEO_MIMES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/ogv",
+  "video/quicktime", // .mov
+  "video/x-matroska", // .mkv
+  "video/x-msvideo", // .avi
+  "video/3gpp", // .3gp
+  "video/x-ms-wmv", // .wmv
+  "video/x-flv", // .flv
+  "video/mpeg",
+]);
+
+const VIDEO_EXTS = new Set([
+  ".mp4",
+  ".webm",
+  ".mov",
+  ".mkv",
+  ".avi",
+  ".3gp",
+  ".m4v",
+  ".mpeg",
+  ".mpg",
+  ".ogv",
+  ".ogg",
+  ".wmv",
+  ".flv",
+]);
+
+const isImage = (file) => IMAGE_MIMES.has(file.mimetype) || file.mimetype.startsWith("image/");
+const isVideo = (file) => {
+  if (VIDEO_MIMES.has(file.mimetype) || file.mimetype.startsWith("video/")) return true;
+  // Some browsers may send application/octet-stream; fall back to extension
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  return VIDEO_EXTS.has(ext);
+};
 // Storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let dest = null;
-    if (file.mimetype.startsWith("image")) {
+    const ext = (path.extname(file.originalname || "").toLowerCase()) || "";
+    if (file.mimetype.startsWith("image") || IMAGE_EXTS.has(ext)) {
       dest = "uploads/images";
-    } else if (file.mimetype.startsWith("video")) {
+    } else if (file.mimetype.startsWith("video") || VIDEO_EXTS.has(ext)) {
       dest = "uploads/videos";
-    } else if (file.mimetype.startsWith("logo")) {
-      dest = "uploads/logo";
     } else {
       return cb(new Error("Only images and videos are allowed!"), false);
     }
     try { fs.mkdirSync(dest, { recursive: true }); } catch {}
+    // Prefer field names when available
+    if (file.fieldname === "clubLogo") dest = "uploads/logo";
+    else if (file.fieldname === "clubMainImages") dest = "uploads/images";
+    else if (file.fieldname === "clubVideo") dest = "uploads/videos";
+    else if (isImage(file)) dest = "uploads/images";
+    else if (isVideo(file)) dest = "uploads/videos";
+    else return cb(new Error("Only images and videos are allowed!"), false);
+
+    try {
+      fs.mkdirSync(dest, { recursive: true });
+    } catch {}
     cb(null, dest);
   },
   filename: function (req, file, cb) {
@@ -26,21 +90,21 @@ const storage = multer.diskStorage({
 
 // File filter (optional)
 const fileFilter = (req, file, cb) => {
-  if (
-    file.mimetype.startsWith("image") ||
-    file.mimetype.startsWith("video") ||
-    file.mimetype.startsWith("logo")
-  ) {
-    cb(null, true);
-  } else {
-    cb(new Error("Invalid file type"), false);
-  }
+  const ext = (path.extname(file.originalname || "").toLowerCase()) || "";
+  const isImage = file.mimetype.startsWith("image") || IMAGE_EXTS.has(ext);
+  const isVideo = file.mimetype.startsWith("video") || VIDEO_EXTS.has(ext);
+  if (isImage || isVideo) return cb(null, true);
+  return cb(new Error("Invalid file type. Allowed images (incl. HEIC/HEIF) and common videos."), false);
+
+  if (isImage(file) || isVideo(file)) return cb(null, true);
+  return cb(new Error("Invalid file type. Allowed: images (jpg, png, webp, gif, svg) and videos (mp4, webm, mov, mkv, avi, more)."), false);
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB max
+  // Increase to 100MB to accommodate more video formats
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 export default upload;

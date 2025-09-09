@@ -295,7 +295,6 @@ export const updateClub = async (req, res) => {
   }
 };
 
-
 // Get all clubs
 export const getAllClubsForHomePage = async (req, res) => {
   try {
@@ -323,10 +322,6 @@ export const getAllClubsForHomePage = async (req, res) => {
        LEFT JOIN admins a ON c.admin_id = a.admin_id`,
       [req.user?.user_id ?? null]
     );
-
-    if (clubs.length === 0) {
-      return res.status(404).json({ message: "No clubs found." });
-    }
 
     // Fetch categories for all clubs
     const [categories] = await pool.query(`
@@ -1601,7 +1596,7 @@ export const addBoardMember = async (req, res) => {
     let imageDbPath = null;
     if (imageFile) {
       const ext = path.extname(imageFile.originalname || imageFile.filename || '') || path.extname(imageFile.filename);
-      const safeName = sanitize(fullName) || 'member';
+      const safeName = sanitize(fullName) || `member${Math.floor(1000 + Math.random() * 9000)}`;
       const src = path.join(baseRoot, imageFile.destination, imageFile.filename);
       const dest = path.join(boardDir, `${safeName}${ext}`);
       await fs.rename(src, dest).catch(async () => { await fs.copyFile(src, dest).then(() => fs.unlink(src).catch(() => {})); });
@@ -1979,5 +1974,4 @@ export const getClubStatistics = async (req, res)=>{
     console.error('Error fetching club statistics:', err);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
-
 }

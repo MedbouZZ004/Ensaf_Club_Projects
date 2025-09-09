@@ -47,12 +47,10 @@ const HeroSection = () => {
   };
   return (
     <section id='hero' className='relative isolate overflow-hidden min-h-screen flex items-center flex-col gap-6 px-2 sm:px-4 md:px-10 py-8 md:py-10'>
-      {/* spots */}
       <div
         aria-hidden
         className='pointer-events-none absolute z-0 top-120 right-50 -translate-x-1/2 -translate-y-1/2 w-[70vw] max-w-[250px] h-[70vw] max-h-[250px] bg-orange-200/30 rounded-full blur-[130px]'
       />
-      {/* title */}
       <motion.div
         className='flex w-full justify-center items-center text-center'
         initial={{ y: -100, opacity: 0 }}
@@ -62,18 +60,17 @@ const HeroSection = () => {
         <h1 className='text-[#fed0a4] text-2xl xs:text-3xl sm:text-4xl md:text-7xl font-bold font-roboto leading-tight'>GROW UP WITH YOUR PEERS.</h1>
       </motion.div>
 
-  {/* content : */}
   <div className='relative z-10 flex w-full flex-col gap-6'>
         {/* first content. */}
-        <div className='flex w-full mt-4 gap-4 flex-col md:flex-row justify-between items-center'>
+        <div className='flex w-full mt-4 gap-4 flex-col lg:flex-row justify-between items-center'>
           <motion.div
-            className='w-full md:w-[40%] relative flex rounded-xl min-h-[180px] sm:min-h-[220px] md:h-70 bg-[#ffdbb9] mb-4 md:mb-0'
+            className='w-full lg:w-[40%] relative flex rounded-xl min-h-[180px] sm:min-h-[220px] md:h-70 bg-[#ffdbb9] mb-4 md:mb-0'
             initial={{ x: -100, opacity: 0 }}
             whileInView={{ x: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: 'easeIn' }}
           >
-            <h3 className='text-xl xs:text-2xl sm:text-3xl md:text-6xl font-roboto w-[80%] py-3 px-2 sm:px-4 md:px-8 text-black/80 font-light'>
+            <h3 className='text-4xl  xs:text-3xl  md:text-[3.3rem] lg:text-6xl font-roboto w-[80%] py-3 px-2 sm:px-4 md:px-8 text-black/80 font-light'>
               <span className='font-medium'>We</span> <br />
               Make-<br />
               Your Search
@@ -82,29 +79,29 @@ const HeroSection = () => {
                 <IoMdArrowDropdownCircle className='inline-block' />
               </a>
             </h3>
-            <img className='absolute w-20 xs:w-28 sm:w-32 md:w-50 -top-4 xs:-top-8 md:-top-16 rotate-10 -right-2 xs:-right-6 md:-right-5' src="/search.png" alt="" />
+            <img className='absolute  w-28.5 sm:w-30 md:w-50 -top-4 xs:-top-8 md:-top-16 rotate-10 -right-2 xs:-right-6 md:-right-5' src="/search.png" alt="" />
           </motion.div>
 
           <motion.div
-            className='w-full md:w-[40%] z-1000 relative flex rounded-xl min-h-[180px] sm:min-h-[220px] md:h-70 bg-[#3C3B39]'
+            className='w-full lg:w-[40%] z-1000 relative flex rounded-xl min-h-[180px] sm:min-h-[220px] md:h-70 bg-[#3C3B39]'
             initial={{ x: 100, opacity: 0 }}
             whileInView={{ x: 0, opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: 'easeIn', delay: 0.2 }}
           >
-            <h3 className='text-xl xs:text-2xl sm:text-3xl md:text-6xl px-2 sm:px-4 md:px-10 py-3 w-[80%] font-roboto font-light text-[#ffcea0]'>
+            <h3 className='text-4xl  xs:text-3xl  md:text-[3.3rem] lg:text-6xl px-2 sm:px-4 md:px-10 py-3 w-[80%] font-roboto font-light text-[#ffcea0]'>
               Share <br />
               Your Ideas <br />
               and-<br />
               <span className='font-medium'>Thrive On</span>
             </h3>
-            <img className='absolute w-16 xs:w-20 sm:w-24 md:w-50 -right-2 xs:-right-6 md:-right-10' src="/light.png" alt="" />
+            <img className='absolute w-30 sm:w-24 md:w-50 -right-2 xs:-right-6 md:-right-10' src="/light.png" alt="" />
           </motion.div>
         </div>
 
-        <div className='w-full flex flex-col md:flex-row gap-4 justify-between items-start'>
+        <div className='w-full flex flex-col-reverse lg:flex-row gap-4 justify-between items-start'>
           <motion.div
-            className="relative w-full md:w-[40%] flex gap-4"
+            className="relative w-full lg:w-[40%] flex gap-4"
             initial={{ x: -100, opacity: 0 }}
             whileInView={{ x: 0, opacity: 1 }}
             viewport={{ once: true }}
@@ -120,7 +117,7 @@ const HeroSection = () => {
               >
                 <div aria-hidden className='pointer-events-none absolute -top-8 -left-8 w-32 h-32 rounded-full bg-orange-300/50 blur-[70px]' />
                 <h3 className='font-roboto text-white font-bold text-lg md:text-2xl'>+10 Clubs Added</h3>
-                <p className='mt-1 text-gray-100 text-md xs:text-xs leading-snug'>
+                <p className='mt-1 text-gray-100 text-sm  sm:text-md leading-snug'>
                   <span className='font-medium'>New clubs</span> have been added to the platform, expanding your opportunities to connect and collaborate with peers.
                 </p>
                 {/* sheen */}
@@ -165,7 +162,7 @@ const HeroSection = () => {
           </motion.div>
 
           <motion.div
-            className='w-full md:w-[40%] h-44 xs:h-56 sm:h-60 md:h-80 flex gap-2'
+            className='w-full lg:w-[40%] h-58 sm:h-60 md:h-80 flex gap-2'
             initial={{ x: 100, opacity: 0 }}
             whileInView={{ x: 0, opacity: 1 }}
             viewport={{ once: true }}

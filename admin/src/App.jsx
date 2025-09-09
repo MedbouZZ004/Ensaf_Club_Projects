@@ -44,7 +44,7 @@ function App() {
         </Route>
         <Route path="club-board-members" element={<ClubBoardMembersLayout />} >
           <Route index  element={<ClubBoardMembers />} />
-          <Route path="add-board-member" element={<AddAndEditBoardMember />} />
+          <Route path="add-edit-board-member" element={<AddAndEditBoardMember />} />
         </Route>
       </>
       }
