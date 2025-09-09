@@ -41,10 +41,6 @@ const BoardMemberCard = ({ boardMember }) => {
               <FaTrash className='text-sm' />
             </button>
           </div>
-          
-          <span className='text-xs font-medium px-2 py-1 rounded-md bg-gray-100 text-gray-600'>
-            ID: {boardMember.id || 'N/A'}
-          </span>
         </div>
       </div>
     </div>

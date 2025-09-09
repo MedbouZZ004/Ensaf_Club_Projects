@@ -44,33 +44,7 @@ const NavBar = () => {
         <img className='w-16 sm:w-20' src="/logo.png" alt="Logo" />
       </Link>
 
-      <div className='hidden md:flex items-center w-[60%] justify-between gap-6'>
-        <div className='relative ml-25'>
-          <button
-            className='text-[#FFC58D] font-roboto flex items-center gap-2 cursor-pointer text-base'
-            onClick={() => setIsOpen(!isOpen)}
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            aria-label="Select language"
-          >
-          <MdOutlineTranslate /> {selectedLanguage.name} {isOpen ? <MdKeyboardArrowUp /> : <MdKeyboardArrowDown />}
-          </button>
-          {isOpen && (
-            <div className='absolute bg-neutral-900 flex flex-col top-10 right-0 border-1 border-orange-300/50 overflow-hidden rounded-xl  min-w-20'>
-              {languages.map(lang => (
-                <button 
-                  onClick={()=>{ setSelectedLanguage(lang); setIsOpen(false); }}
-                  key={lang.id}
-                  role="option"
-                  aria-selected={selectedLanguage.id === lang.id}
-                  className='text-white text-left hover:bg-gray-700 px-4 py-2 cursor-pointer w-full'
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className='hidden md:flex'>
         {
           user?
           <button
@@ -118,23 +92,7 @@ const NavBar = () => {
               >
                 Login <FiLogIn size={14}/>
               </button>}
-              <div className='flex  flex-col gap-1'>
-                <p className='flex items-center gap-2 text-[#FFC58D] mb-2 text-lg'>
-                  <MdOutlineTranslate size={20} />
-                  Language
-                </p>
-                <div className='flex gap-1.5 flex-wrap'>
-                  {languages.map(lang => (
-                    <button
-                      key={lang.id}
-                      onClick={() => setSelectedLanguage(lang)}
-                      className={`px-1.5 py-0.5 rounded-md border-1 text-[10px] ${selectedLanguage.id === lang.id ? 'border-orange-300/80 bg-neutral-800 text-orange-200' : 'border-orange-300/40 text-[#FFC58D]'}`}
-                    >
-                      {lang.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          
            
             </div>
           </div>

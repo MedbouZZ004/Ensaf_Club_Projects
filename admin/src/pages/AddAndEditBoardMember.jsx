@@ -17,8 +17,9 @@ const AddAndEditBoardMember = () => {
         'Treasurer',
         'Media Chair',
         'Program Chair',
-        'Design Chair'
-    ]
+        'Design Chair',
+        'Other'
+    ];
     
     const [formData, setFormData] = React.useState({
         fullName: '',
@@ -55,11 +56,17 @@ const AddAndEditBoardMember = () => {
     }, [memberId]);
     
     const handleInputChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+        const { name, value } = e.target;
+        setFormData(prev => {
+            if (name === 'position') {
+                // If switching away from Other, clear custom role text
+                if (value !== 'Other') {
+                    return { ...prev, position: value, role: '' };
+                }
+                return { ...prev, position: value };
+            }
+            return { ...prev, [name]: value };
+        });
     }
     
     const handleImageChange = (e) => {
@@ -79,8 +86,11 @@ const AddAndEditBoardMember = () => {
         const payload = new FormData();
         payload.append('fullName', formData.fullName);
         if (formData.email) payload.append('email', formData.email);
-        const role = formData.position || formData.role;
-        if (role) payload.append('role', role);
+        const finalRole = formData.position === 'Other' ? (formData.role || '').trim() : formData.position;
+        if (!finalRole) {
+            return { success: false };
+        }
+        payload.append('role', finalRole);
         if (clubId) payload.append('clubId', clubId);
         if (formData.image) payload.append('image', formData.image);
     const result = memberId ? await updateBoardMember(parseInt(memberId,10), payload) : await addBoardMember(payload);
@@ -99,8 +109,8 @@ const AddAndEditBoardMember = () => {
     return (
         <section className='py-8 h-screen overflow-y-auto px-6 '>
             <div className='mb-8'>
-                <h1 className='text-4xl font-bold text-orange-400 mb-2'>{id ? 'Edit Board Member' : 'Add New Board Member'}</h1>
-                <p className='text-gray-600'>Fill in the details below to {id ? 'update the board member' : 'add a new board member'}</p>
+                <h1 className='text-4xl font-bold text-orange-400 mb-2'>{memberId ? 'Edit Board Member' : 'Add New Board Member'}</h1>
+                <p className='text-gray-600'>Fill in the details below to {memberId ? 'update the board member' : 'add a new board member'}</p>
             </div>
             
             <form ref={formRef} action={formAction} method="post" encType="multipart/form-data" className='bg-white border border-orange-400 rounded-xl shadow-md p-6 md:p-8'>
@@ -109,7 +119,7 @@ const AddAndEditBoardMember = () => {
                     <div>
                         <label htmlFor="fullName" className='text-md font-medium text-gray-700 mb-2 flex items-center'>
                             <FaUser className='mr-2 text-orange-400' />
-                            Full Name <span className='text-orange-400 ml-1'>*</span>
+                            {memberId ? 'Edit' : ''} Full Name <span className='text-orange-400 ml-1'>*</span>
                         </label>
                         <div className='relative'>
                             <input 
@@ -120,7 +130,7 @@ const AddAndEditBoardMember = () => {
                                 onChange={handleInputChange}
                                 required
                                 className='w-full pl-10 outline-none pr-4 py-2 border border-gray-300 rounded-lg  focus:ring-orange-300 focus:border-orange-400 transition-colors duration-200'
-                                placeholder='Enter full name'
+                                placeholder={'Enter full name'}
                             />
                             <FaUser className='absolute left-3 top-3 text-gray-400' />
                         </div>
@@ -130,7 +140,7 @@ const AddAndEditBoardMember = () => {
                     <div>
                         <label htmlFor="email" className='text-md font-medium text-gray-700 mb-2 flex items-center'>
                             <FaEnvelope className='mr-2 text-orange-400' />
-                            Email Address
+                            {memberId ? 'Edit' : ''} Email Address
                         </label>
                         <div className='relative'>
                             <input 
@@ -147,11 +157,11 @@ const AddAndEditBoardMember = () => {
                     </div>
                     
                     
-                    {/* role Field */}
+                    {/* Role Field */}
                     <div>
                         <label htmlFor="position" className='text-md font-medium text-gray-700 mb-2 flex items-center'>
                             <FaUserTie className='mr-2 text-orange-400' />
-                            Role <span className='text-orange-400 ml-1'>*</span>
+                            {memberId ? 'Edit' : ''} Role <span className='text-orange-400 ml-1'>*</span>
                         </label>
                         <div className='relative'>
                             <select
@@ -170,13 +180,28 @@ const AddAndEditBoardMember = () => {
                             <FaUserTie className='absolute left-3 top-3 text-gray-400' />
                             <FaChevronDown className='absolute right-3 top-3 text-gray-400' />
                         </div>
+                        {formData.position === 'Other' && (
+                            <div className='mt-3'>
+                                <label htmlFor='customRole' className='block text-sm font-medium text-gray-600 mb-1'>Specify Role<span className='text-orange-400 ml-1'>*</span></label>
+                                <input
+                                    id='customRole'
+                                    name='role'
+                                    type='text'
+                                    value={formData.role}
+                                    onChange={handleInputChange}
+                                    placeholder='Type custom role (e.g., Community Lead)'
+                                    required
+                                    className='w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-orange-300 focus:border-orange-400 transition-colors duration-200'
+                                />
+                            </div>
+                        )}
                     </div>
                     
                     {/* Image Upload Field */}
                     <div>
                         <label htmlFor="board-member-image" className='text-md font-medium text-gray-700 mb-2 flex items-center'>
                             <FaImage className='mr-2 text-orange-400' />
-                            Board Member Image
+                            {memberId ? 'Edit' : ''} Board Member Image
                         </label>
                         <div className='flex items-center justify-center w-full'>
                             <label htmlFor="board-member-image" className='relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors duration-200 overflow-hidden'>
@@ -217,7 +242,7 @@ const AddAndEditBoardMember = () => {
                         className='px-6 py-2 bg-orange-400 border cursor-poiner border-orange-400 rounded-lg text-white font-medium hover:bg-orange-400/80 transition-colors duration-200 flex items-center justify-center'
                     >
                         <FaSave className='mr-2' />
-                        {id ? (isPending ? 'Updating...' : 'Update Board Member') : (isPending ? 'Adding...' : 'Add Board Member')}
+                        {memberId ? (isPending ? 'Updating...' : 'Update Board Member') : (isPending ? 'Adding...' : 'Add Board Member')}
                     </button>
                 </div>
             </form>
