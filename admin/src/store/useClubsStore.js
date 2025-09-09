@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
 import {create} from 'zustand'
 import { toast } from 'react-toastify';
 const useClubsStore = create((set) => ({
@@ -10,10 +6,7 @@ const useClubsStore = create((set) => ({
   error: null,
   activities:[],
   boardMembers:[],
-<<<<<<< HEAD
-=======
   clubStatistics:[],
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
   getClubs: async ()=>{
     try{
         set({loading:true, error:null})
@@ -194,8 +187,7 @@ const useClubsStore = create((set) => ({
         return {success:false, message: err.message};
     }
   },
-<<<<<<< HEAD
-=======
+
    updateBoardMember: async(memberId, formData)=>{
         try{
                 const res = await fetch(`/api/clubs/boardMembers/${memberId}`, {
@@ -265,8 +257,6 @@ const useClubsStore = create((set) => ({
         return {success:false, message: err.message};
     }
     },
-<<<<<<< HEAD
-=======
     updateClub: async (clubId, formData) => {
         try {
             const res = await fetch(`/api/clubs/${clubId}`, {
@@ -305,7 +295,6 @@ const useClubsStore = create((set) => ({
             return set({loading:false, error:'Error ouccured while fetching statistics' + err.message});
         }
     }
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
 }));
 
 export default useClubsStore;
