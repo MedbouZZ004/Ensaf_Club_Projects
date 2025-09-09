@@ -2,8 +2,6 @@ import React from 'react'
 import { useActionState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import useClubsStore from '../store/useClubsStore'
-<<<<<<< HEAD
-=======
 
 const AddAndEditClubPage = () => {
   const {addClub, updateClub, clubs} = useClubsStore();
@@ -24,9 +22,6 @@ const AddAndEditClubPage = () => {
   const [searchParams] = useSearchParams();
   const clubId = searchParams.get("id");
   const isEditMode = Boolean(clubId);
-
-<<<<<<< HEAD
-=======
   // Form refs for prefill
   const formRef = React.useRef();
 
@@ -135,7 +130,6 @@ const AddAndEditClubPage = () => {
     });
   }, [logoPreview, videoPreview, imagesPreviews]);
 
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
   // Add handler
   async function handleAddSubmit(prevState, formData){
     const clubName = formData.get("clubName");
@@ -174,8 +168,6 @@ const AddAndEditClubPage = () => {
     return result;
   }
 
-<<<<<<< HEAD
-=======
 
   // Edit handler
   async function handleEditSubmit(prevState, formData) {
@@ -234,8 +226,6 @@ const AddAndEditClubPage = () => {
       </div>
 
   <form 
-<<<<<<< HEAD
-=======
     ref={formRef}
     encType="multipart/form-data"
     action={isEditMode ? formEditAction : formAddAction}
@@ -251,9 +241,6 @@ const AddAndEditClubPage = () => {
               </label>
               <input
                 id="clubName"
-                type="text"
-<<<<<<< HEAD
-=======
                 placeholder={clubId ? 'Enter the new club name...' : 'Enter club name...'}
                 required
                 name="clubName"
@@ -270,8 +257,7 @@ const AddAndEditClubPage = () => {
                 id="clubDescription"
                 rows={5}
                 name="clubDescription"
-<<<<<<< HEAD
-=======
+
                 placeholder={clubId ? 'Enter the new club description...' : 'Enter club description...'}
                 required
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -309,8 +295,6 @@ const AddAndEditClubPage = () => {
                         id={`category-${index}`}
                         type="text"
                         name={`category-${index}`}
-<<<<<<< HEAD
-=======
       defaultValue={categoriesValues[index] || ''}
       placeholder={clubId ? `Enter the new category ${index + 1} name...` : `Enter category ${index + 1} name...`}
                         required
@@ -330,9 +314,7 @@ const AddAndEditClubPage = () => {
                 <input
                   id="instagram"
                   type="url"
-<<<<<<< HEAD
                   placeholder="Enter Instagram link..."
-=======
                   placeholder={clubId ? 'Enter the new Instagram link...' : 'Enter Instagram link...'}
                   name="instagram"
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -346,9 +328,7 @@ const AddAndEditClubPage = () => {
                   id="linkedin"
                   type="url"
                   name="linkedin"
-<<<<<<< HEAD
                   placeholder="Enter LinkedIn link..."
-=======
                   placeholder={clubId ? 'Enter the new LinkedIn link...' : 'Enter LinkedIn link...'}
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />
@@ -361,8 +341,6 @@ const AddAndEditClubPage = () => {
                 <label htmlFor="clubLogo" className="block text-sm font-medium text-gray-700 mb-1">
                   {clubId ? 'Edit Club Logo' : 'Club Logo'}
                 </label>
-<<<<<<< HEAD
-=======
                 <label htmlFor="clubLogo" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
                   {logoPreview ? (
                     <img src={logoPreview} alt="Logo preview" className="absolute inset-0 h-full w-full object-contain" />
@@ -379,8 +357,6 @@ const AddAndEditClubPage = () => {
                 <label htmlFor="clubVideo" className="block text-sm font-medium text-gray-700 mb-1">
                   {clubId ? 'Edit Club Video' : 'Club Video'}
                 </label>
-<<<<<<< HEAD
-=======
                 <label htmlFor="clubVideo" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
                   {videoPreview ? (
                     <video src={videoPreview} className="absolute inset-0 h-full w-full object-cover" controls />
@@ -419,8 +395,6 @@ const AddAndEditClubPage = () => {
                   {Array.from({ length: numberOfImages }, (_, index) => (
                     <div key={index}>
                       <label htmlFor={`image-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
-<<<<<<< HEAD
-=======
                         {clubId ? `Edit Image ${index + 1}` : `Image ${index + 1}`}
                       </label>
                       <label htmlFor={`image-${index}`} className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-orange-300 rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100 transition-colors overflow-hidden">
@@ -484,8 +458,6 @@ const AddAndEditClubPage = () => {
                 id="adminPassword"
                 type="password"
                 placeholder="Enter admin password..."
-<<<<<<< HEAD
-=======
                 required={!isEditMode}
                 name="adminPassword"
                 className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"

@@ -8,9 +8,6 @@ const IMAGE_EXTS = new Set([
   ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg",
   ".heic", ".heif", ".tif", ".tiff"
 ]);
-const VIDEO_EXTS = new Set([
-  ".mp4", ".webm", ".mov", ".mkv", ".avi", ".3gp", ".m4v", ".mpeg", ".mpg", ".ogv", ".ogg", ".wmv", ".flv"
-]);
 const IMAGE_MIMES = new Set([
   "image/jpeg",
   "image/png",
