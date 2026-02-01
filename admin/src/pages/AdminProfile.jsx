@@ -1,13 +1,4 @@
-<<<<<<< HEAD
-import React from 'react'
 
-const AdminProfile = () => {
-  return (
-    <div>AdminProfile</div>
-  )
-}
-
-=======
 import React, { useEffect, useState } from 'react'
 import { FaUser, FaEnvelope, FaEdit, FaSave, FaTimes } from 'react-icons/fa'
 import { RiLockPasswordFill } from "react-icons/ri";

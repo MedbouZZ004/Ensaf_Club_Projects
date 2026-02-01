@@ -314,7 +314,6 @@ const AddAndEditClubPage = () => {
                 <input
                   id="instagram"
                   type="url"
-                  placeholder="Enter Instagram link..."
                   placeholder={clubId ? 'Enter the new Instagram link...' : 'Enter Instagram link...'}
                   name="instagram"
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
@@ -328,7 +327,6 @@ const AddAndEditClubPage = () => {
                   id="linkedin"
                   type="url"
                   name="linkedin"
-                  placeholder="Enter LinkedIn link..."
                   placeholder={clubId ? 'Enter the new LinkedIn link...' : 'Enter LinkedIn link...'}
                   className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 outline-none  focus:border-orange-400 transition"
                 />

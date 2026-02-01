@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-import React from 'react'
-
-const ClubStatistics = () => {
-  return (
-    <div>ClubStatistics</div>
-  )
-}
-
-export default ClubStatistics
-=======
 import React, { useEffect } from 'react'
 import useClubsStore from '../store/useClubsStore'
 import Loader from '../components/Loader'
@@ -204,4 +193,3 @@ const ClubStatistics = () => {
 }
 
 export default ClubStatistics
->>>>>>> d14f7a374c35a4a6ab810819eae76f78b75d649e
